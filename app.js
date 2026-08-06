@@ -74,10 +74,10 @@ class GradingHeatmapApp {
           <div class="sidebar-label" style="margin-bottom:6px;">Legend</div>
           ${[
             ["#b8b3ad","Assessment date"],
-            ["rgba(200,80,80,0.2)","1 Course"],
-            ["rgba(180,40,40,0.4)","2 Courses"],
-            ["rgba(160,0,0,0.6)","3 Courses"],
-            ["rgba(139,0,0,0.85)","4+ Courses"],
+            ["rgba(200,80,80,0.2)","1 Grading load"],
+            ["rgba(180,40,40,0.4)","2 Grading loads"],
+            ["rgba(160,0,0,0.6)","3 Grading loads"],
+            ["rgba(139,0,0,0.85)","4+ Grading loads"],
             ["#f5ede0","Teaching-free week"],
             ["#e8e8e8","Public holiday"],
             ["#f0f0f0","Weekend"],
