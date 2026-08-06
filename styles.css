@@ -25,9 +25,9 @@ body {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  background: #8B0000;
+  background: #bc0031;
   color: #fff;
-  border-bottom: 2px solid #8B0000;
+  border-bottom: 2px solid #bc0031;
 }
 
 .header-left {
@@ -55,10 +55,10 @@ body {
 }
 
 .header-btn {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.4);
-  color: #fff;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255,255,255,0.7);
+  color: #ffffff;
+  border-radius: 8px;
   padding: 5px 12px;
   cursor: pointer;
   font-size: 12px;
@@ -121,11 +121,11 @@ body {
 }
 
 .input:focus {
-  border-color: #8B0000;
+  border-color: #bc0031;
 }
 
 .add-btn {
-  background: #8B0000;
+  background: #bc0031;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -151,7 +151,7 @@ body {
 }
 
 .year-section.drag-over {
-  border-color: #8B0000;
+  border-color: #bc0031;
 }
 
 .year-label {
@@ -179,9 +179,9 @@ body {
 }
 
 .multiplier-btn.active {
-  background: #8B0000;
+  background: #bc0031;
   color: #fff;
-  border-color: #8B0000;
+  border-color: #bc0031;
 }
 
 .empty-msg {
@@ -285,12 +285,12 @@ body {
 }
 
 .assessment-input:focus {
-  border-color: #8B0000;
+  border-color: #bc0031;
 }
 
 .add-assessment-btn {
   width: 100%;
-  background: #8B0000;
+  background: #bc0031;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -358,7 +358,7 @@ body {
 }
 
 .semester-btn.active {
-  background: #8B0000;
+  background: #bc0031;
   color: #fff;
   box-shadow: 0 2px 6px rgba(139,0,0,0.3);
 }
@@ -382,7 +382,7 @@ body {
 }
 
 .month-header {
-  background: #8B0000;
+  background: #bc0031;
   color: #fff;
   text-align: center;
   padding: 7px 0;
@@ -440,7 +440,7 @@ body {
 
 .day-cell.bold {
   font-weight: 800;
-  border: 2px solid #8B0000;
+  border: 2px solid #bc0031;
 }
 
 .day-cell.bold:hover {
