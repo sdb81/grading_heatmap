@@ -14,7 +14,7 @@ const FEESTDAGEN_MAP = {
 
 const FEESTDAGEN = new Set(Object.keys(FEESTDAGEN_MAP));
 
-const VRIJE_ISO_WEEKS = new Set([32,33,34,35,52,53,18,26,27,28,29,30]);
+const VRIJE_ISO_WEEKS = new Set([32,33,34,35,52,53,18]);
 
 const COURSE_COLORS = [
   "#c0392b","#8e44ad","#2980b9","#27ae60","#d35400",
