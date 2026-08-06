@@ -43,15 +43,18 @@ class GradingHeatmapApp {
     return `
       <style>
       @media (max-width: 768px) {
-        input, select, textarea {
-          font-size: 16px !important;
-        }
         .sidebar { position: fixed; left: -100%; top: 0; width: 250px; height: 100vh; background: #fff; z-index: 999; transition: left 0.3s; overflow-y: auto; box-shadow: 2px 0 8px rgba(0,0,0,0.1); padding-top: 75px; }
         .sidebar.open { left: 0; }
         .hamburger { display: flex !important; align-items: center; }
         main { width: 100%; }
         .calendar-grid { display: flex; flex-direction: column; }
         .month-row { width: 100%; margin-bottom: 20px; }
+      
+        .header { flex-wrap: wrap; gap: 6px; padding: 8px 10px; }
+        .header-left { flex: 1; min-width: 0; overflow: hidden; }
+        .header-title { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .header-right { display: flex; flex-wrap: wrap; gap: 4px; }
+        .header-btn { font-size: 11px; padding: 4px 8px; }
       }
       </style>
 
@@ -59,12 +62,12 @@ class GradingHeatmapApp {
       <button class="hamburger" id="hamburger-btn" style="z-index:1001;background:#8B0000;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:18px;display:none;">☰</button>
         <div class="header-left">
           <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/Amsterdamuniversitylogo.svg" alt="UvA logo" class="uva-logo" />
-          <span class="header-title">Grading Heatmap 2026–27</span>
+          <span class="header-title">Grading Heatmap</span>
         </div>
         <div class="header-right">
-          <button class="header-btn" id="share-btn"><i class="fa-solid fa-link"></i>${this.shareMsg ? ` — ${this.shareMsg}` : " Share"}</button>
-          <button class="header-btn" id="png-btn"><i class="fa-solid fa-download"></i> Save as Image</button>
-          <button class="header-btn danger" id="reset-btn"><i class="fa-solid fa-trash"></i> Reset</button>
+          <button class="header-btn" id="share-btn">${this.shareMsg ? ` — ${this.shareMsg}` : " Share"}</button>
+          <button class="header-btn" id="png-btn">Save</button>
+          <button class="header-btn danger" id="reset-btn">Reset</button>
         </div>
       </header>
 
@@ -83,7 +86,7 @@ class GradingHeatmapApp {
         <div class="sidebar-label">Courses</div>
         <div style="display:flex;gap:6px;margin-bottom:6px;width:100%;">
           <button id="import-rooster-btn" style="flex:1;background:#8B0000;color:#fff;border:none;border-radius:4px;padding:6px 10px;font-size:12px;cursor:pointer;font-weight:600;">
-            <i class="fa-solid fa-file-import"></i> Import from Rooster
+            <i class="fa-solid fa-file-import"></i>  Import from Rooster
           </button>
           <button id="import-help-btn" style="background:#dad6d0;color:#555;border:none;border-radius:4px;padding:6px 8px;font-size:12px;cursor:pointer;font-weight:700;">?</button>
         </div>
