@@ -30,14 +30,26 @@ class GradingHeatmapApp {
     const grouped = this.getGroupedCourses();
 
     return `
+      <style>
+      @media (max-width: 768px) {
+        .sidebar { position: fixed; left: -100%; top: 0; width: 250px; height: 100vh; background: #fff; z-index: 999; transition: left 0.3s; overflow-y: auto; box-shadow: 2px 0 8px rgba(0,0,0,0.1); padding-top: 75px; }
+        .sidebar.open { left: 0; }
+        .hamburger { display: flex !important; align-items: center; }
+        main { width: 100%; }
+        .calendar-grid { display: flex; flex-direction: column; }
+        .month-row { width: 100%; margin-bottom: 20px; }
+      }
+      </style>
+
       <header class="header">
+      <button class="hamburger" id="hamburger-btn" style="z-index:1001;background:#8B0000;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:18px;display:none;">☰</button>
         <div class="header-left">
           <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/Amsterdamuniversitylogo.svg" alt="UvA logo" class="uva-logo" />
           <span class="header-title">Grading Heatmap 2026–27</span>
         </div>
         <div class="header-right">
           <button class="header-btn" id="share-btn"><i class="fa-solid fa-link"></i>${this.shareMsg ? ` — ${this.shareMsg}` : " Share"}</button>
-          <button class="header-btn" id="png-btn"><i class="fa-solid fa-download"></i> PNG</button>
+          <button class="header-btn" id="png-btn"><i class="fa-solid fa-download"></i> Save as Image</button>
           <button class="header-btn danger" id="reset-btn"><i class="fa-solid fa-trash"></i> Reset</button>
         </div>
       </header>
@@ -609,15 +621,40 @@ class GradingHeatmapApp {
     }));
   }
 
-  attachEventListeners() {
-    // Header buttons
-    document.getElementById("add-course-btn")?.addEventListener("click", () => this.addCourse());
-    document.getElementById("course-input")?.addEventListener("keydown", e => e.key === "Enter" && this.addCourse());
-    document.getElementById("share-btn")?.addEventListener("click", () => this.share());
-    document.getElementById("png-btn")?.addEventListener("click", () => this.downloadPNG());
-    document.getElementById("reset-btn")?.addEventListener("click", () => this.reset());
-    document.getElementById('import-rooster-btn')?.addEventListener('click', () => this.handleICSUpload());
-    document.getElementById('import-help-btn')?.addEventListener('click', () => this.showImportHelpModal());
+attachEventListeners() {
+  // Helper to replace and rebind to avoid duplicate listeners
+  const bind = (id, event, handler) => {
+    const old = document.getElementById(id);
+    if (!old) return;
+    const el = old.cloneNode(true);
+    old.replaceWith(el);
+    el.addEventListener(event, handler);
+  };
+
+  bind('add-course-btn', 'click', () => this.addCourse());
+  bind('course-input', 'keydown', e => e.key === 'Enter' && this.addCourse());
+  bind('share-btn', 'click', () => this.share());
+  bind('png-btn', 'click', () => this.downloadPNG());
+  bind('reset-btn', 'click', () => this.reset());
+  bind('import-rooster-btn', 'click', () => this.handleICSUpload());
+  bind('import-help-btn', 'click', () => this.showImportHelpModal());
+
+  // Hamburger
+  const oldHamburger = document.getElementById('hamburger-btn');
+  if (oldHamburger) {
+    const hamburger = oldHamburger.cloneNode(true);
+    oldHamburger.replaceWith(hamburger);
+    hamburger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelector('.sidebar')?.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      const sidebar = document.querySelector('.sidebar');
+      if (window.innerWidth <= 768 && sidebar?.classList.contains('open') && !sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    }, true);
+  }
 
     // Semester buttons
     document.querySelectorAll(".semester-btn").forEach(btn => {
@@ -661,6 +698,15 @@ class GradingHeatmapApp {
           this.render();
         }
       });
+    });
+
+    const oldBtn = document.getElementById('hamburger-btn');
+    const hamburger = oldBtn.cloneNode(true);
+    oldBtn.replaceWith(hamburger);
+
+    hamburger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelector('.sidebar')?.classList.toggle('open');
     });
 
     // Assessment actions
@@ -889,7 +935,16 @@ class GradingHeatmapApp {
 
   addAssessment(courseId) {
     const { day, month, year, name } = this.newAssessment;
-    if (!name.trim() || !day || !month || !year) return;
+    
+    if (!name.trim()) {
+      alert('Assessment name cannot be empty');
+      return;
+    }
+    
+    if (!day || !month || !year) {
+      alert('Please fill in all date fields');
+      return;
+    }
     
     const iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const course = this.state.courses.find(c => c.id === courseId);
@@ -899,7 +954,7 @@ class GradingHeatmapApp {
         name: name,
         date: iso
       });
-      this.newAssessment = { name: "", day: "", month: "", year: "" };
+      this.newAssessment = { name: '', day: '', month: '', year: '' };
       saveState(this.state);
       this.render();
     }
@@ -918,8 +973,8 @@ class GradingHeatmapApp {
     const h = this.heatData[iso];
     if (!h) return;
     const lines = [];
-    (h.assessments || []).forEach(a => lines.push(`📋 ${a.course}: ${a.name}`));
-    if (h.count > 0) lines.push(`⏱ ${h.count} grading window${h.count > 1 ? "s" : ""} active`);
+    (h.assessments || []).forEach(a => lines.push(`<i class="fa-regular fa-flag"></i> ${a.course}: ${a.name}`));
+    if (h.count > 0) lines.push(`<i class="fa-solid fa-spinner"></i> ${h.count} concurrent grading window${h.count > 1 ? "s" : ""}`);
     if (!lines.length) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -944,15 +999,138 @@ class GradingHeatmapApp {
   }
 
   async downloadPNG() {
-    const calRef = document.getElementById("calendar-ref");
-    if (!calRef) return;
-    const canvas = await html2canvas(calRef, { scale: 2, backgroundColor: "#f5f5f0" });
-    const a = document.createElement("a");
-    a.download = "grading-heatmap.png";
-    a.href = canvas.toDataURL("image/png");
+    const container = document.createElement('div');
+    container.style.cssText = 'display:flex;gap:20px;background:#f0ede8;padding:20px;font-family:sans-serif;box-sizing:border-box;';
+
+    const sidebar = document.createElement('div');
+    sidebar.style.cssText = 'flex:0 0 270px;background:#f0ede8;color:#222;display:flex;flex-direction:column;justify-content:space-between;padding:14px 10px;gap:6px;flex-shrink:0;border-radius:8px;font-family:sans-serif;';
+
+    // Top section: title + course groups
+    const topSection = document.createElement('div');
+    topSection.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+
+    const title = document.createElement('div');
+    title.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:2px;';
+    title.textContent = 'Courses';
+    topSection.appendChild(title);
+
+    const grouped = this.getGroupedCourses();
+
+    grouped.forEach(group => {
+      const visibleCourses = group.courses.filter(c => c.on);
+      if (visibleCourses.length === 0) return;
+
+      const yearSection = document.createElement('div');
+      yearSection.style.cssText = 'background:#dad6d0;border-radius:8px;padding:8px;margin-bottom:4px;';
+
+      const yearLabel = document.createElement('div');
+      yearLabel.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:6px;';
+      yearLabel.textContent = group.label === 'Unassigned' ? 'Unassigned' : group.label;
+      yearSection.appendChild(yearLabel);
+
+      visibleCourses.forEach(course => {
+        const card = document.createElement('div');
+        card.style.cssText = `background:#f0ede8;border-radius:8px;margin-bottom:4px;border-left:3px solid ${course.color};box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;`;
+
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;align-items:center;gap:5px;padding:7px 8px;';
+
+        const swatch = document.createElement('div');
+        swatch.style.cssText = `width:20px;height:20px;border-radius:3px;background:${course.color};flex-shrink:0;`;
+
+        const name = document.createElement('div');
+        name.style.cssText = 'flex:1;font-size:12px;font-weight:600;color:#353535;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        name.textContent = course.name;
+
+        header.appendChild(swatch);
+        header.appendChild(name);
+        card.appendChild(header);
+
+        if (!course.assessments || course.assessments.length === 0) {
+          const empty = document.createElement('div');
+          empty.style.cssText = 'font-size:10px;color:#555;font-style:italic;padding:0 8px 6px 8px;';
+          empty.textContent = 'No assessments yet';
+          card.appendChild(empty);
+        } else {
+          course.assessments.forEach(a => {
+            const item = document.createElement('div');
+            item.style.cssText = 'display:flex;flex-direction:column;padding:3px 8px;border-bottom:1px solid #e0e0e0;';
+
+            const aName = document.createElement('div');
+            aName.style.cssText = 'font-size:11px;color:#333;';
+            aName.textContent = a.name;
+
+            const aDate = document.createElement('div');
+            aDate.style.cssText = 'font-size:10px;color:#999;';
+            aDate.textContent = a.date;
+
+            item.appendChild(aName);
+            item.appendChild(aDate);
+            card.appendChild(item);
+          });
+        }
+
+        yearSection.appendChild(card);
+      });
+
+      topSection.appendChild(yearSection);
+    });
+
+    sidebar.appendChild(topSection);
+
+    // Legend at the bottom
+    const legend = document.createElement('div');
+    legend.style.cssText = 'margin-top:8px;';
+
+    const legendTitle = document.createElement('div');
+    legendTitle.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:6px;';
+    legendTitle.textContent = 'Legend';
+    legend.appendChild(legendTitle);
+
+    const legendItems = [
+      ['#b8b3ad', 'Assessment date'],
+      ['rgba(200,80,80,0.2)', '1 Grading load'],
+      ['rgba(180,40,40,0.4)', '2 Grading loads'],
+      ['rgba(160,0,0,0.6)', '3 Grading loads'],
+      ['rgba(139,0,0,0.85)', '4+ Grading loads'],
+      ['#f5ede0', 'Teaching-free week'],
+      ['#e8e8e8', 'Public holiday'],
+      ['#f0f0f0', 'Weekend'],
+    ];
+
+    legendItems.forEach(([bg, label]) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:4px;';
+
+      const box = document.createElement('div');
+      box.style.cssText = `width:14px;height:14px;border-radius:50%;background:${bg};flex-shrink:0;border:1px solid rgba(0,0,0,0.08);`;
+
+      const text = document.createElement('div');
+      text.style.cssText = 'font-size:11px;color:#353535;';
+      text.textContent = label;
+
+      row.appendChild(box);
+      row.appendChild(text);
+      legend.appendChild(row);
+    });
+
+    sidebar.appendChild(legend);
+
+    const calClone = document.getElementById('calendar-ref').cloneNode(true);
+    calClone.style.cssText = 'flex:1;';
+
+    container.appendChild(sidebar);
+    container.appendChild(calClone);
+    document.body.appendChild(container);
+
+    const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#f0ede8' });
+    document.body.removeChild(container);
+
+    const a = document.createElement('a');
+    a.download = 'grading-heatmap.png';
+    a.href = canvas.toDataURL('image/png');
     a.click();
   }
-
   reset() {
     if (!confirm("Reset all data?")) return;
     this.state = DEFAULT;
