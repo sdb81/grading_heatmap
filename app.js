@@ -34,6 +34,7 @@ class GradingHeatmapApp {
       @media (max-width: 768px) {
         input, select, textarea {
           font-size: 16px !important;
+        }
         .sidebar { position: fixed; left: -100%; top: 0; width: 250px; height: 100vh; background: #fff; z-index: 999; transition: left 0.3s; overflow-y: auto; box-shadow: 2px 0 8px rgba(0,0,0,0.1); padding-top: 75px; }
         .sidebar.open { left: 0; }
         .hamburger { display: flex !important; align-items: center; }
