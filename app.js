@@ -473,6 +473,7 @@ class GradingHeatmapApp {
         <span style="font-size:10px;color:#ccc;user-select:none;cursor:grab;"><i class="fa-solid fa-grip-vertical"></i></span>
           <input type="color" id="color-${course.id}" value="${color}" class="color-picker" data-id="${course.id}" style="width:20px;height:20px;border:none;border-radius:3px;cursor:pointer;padding:0;">
           <span class="course-name ${!course.on ? "off" : ""}">${course.name}</span>
+          <button class="multiplier-btn ${course.loadMultiplier === 2 ? 'active' : ''}" data-id="${course.id}" title="Parallel groups">2×</button>
           <button class="icon-btn toggle-btn" data-id="${course.id}" title="${course.on ? "Hide" : "Show"}">
             ${course.on ? '<i class="fa-solid fa-eye"></i>' : '<i class="fa-solid fa-eye-slash"></i>'}
           </button>
@@ -638,6 +639,18 @@ attachEventListeners() {
   bind('reset-btn', 'click', () => this.reset());
   bind('import-rooster-btn', 'click', () => this.handleICSUpload());
   bind('import-help-btn', 'click', () => this.showImportHelpModal());
+
+  document.querySelector('.sidebar')?.addEventListener('click', e => {
+    const btn = e.target.closest('.multiplier-btn');
+    if (btn) {
+      const course = this.state.courses.find(c => c.id === btn.dataset.id);
+      if (course) {
+        course.loadMultiplier = course.loadMultiplier === 2 ? 1 : 2;
+        saveState(this.state);
+        this.render();
+      }
+    }
+  });
 
   // Hamburger
   const oldHamburger = document.getElementById('hamburger-btn');
@@ -908,7 +921,8 @@ attachEventListeners() {
       id, name,
       on: true,
       assessments: [],
-      color: COURSE_COLORS[this.state.courses.length % COURSE_COLORS.length]
+      color: COURSE_COLORS[this.state.courses.length % COURSE_COLORS.length],
+      loadMultiplier: 1
     });
     this.state.yearMap[id] = 3;
     this.newCourseName = "";
@@ -1044,6 +1058,14 @@ attachEventListeners() {
 
         header.appendChild(swatch);
         header.appendChild(name);
+
+        if (course.loadMultiplier === 2) {
+          const badge = document.createElement('div');
+          badge.style.cssText = 'font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;background:#8B0000;color:#fff;flex-shrink:0;';
+          badge.textContent = '2×';
+          header.appendChild(badge);
+        }
+
         card.appendChild(header);
 
         if (!course.assessments || course.assessments.length === 0) {

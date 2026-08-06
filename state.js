@@ -3,7 +3,11 @@ const DEFAULT = { courses: [], yearMap: {} };
 function loadState() {
   try {
     const s = localStorage.getItem("uva-heatmap-v2");
-    if (s) return JSON.parse(s);
+    if (s) {
+      const state = JSON.parse(s);
+      state.courses.forEach(c => { c.loadMultiplier = c.loadMultiplier ?? 1; });
+      return state;
+    }
   } catch {}
   return DEFAULT;
 }
@@ -16,7 +20,11 @@ function loadFromURL() {
   try {
     const params = new URLSearchParams(window.location.search);
     const enc = params.get("s");
-    if (enc) return JSON.parse(decodeURIComponent(escape(atob(enc))));
+    if (enc) {
+      const state = JSON.parse(decodeURIComponent(escape(atob(enc))));
+      state.courses.forEach(c => { c.loadMultiplier = c.loadMultiplier ?? 1; });
+      return state;
+    }
   } catch {}
   return null;
 }

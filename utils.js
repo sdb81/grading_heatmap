@@ -66,6 +66,7 @@ function buildMonth(year, month) {
 function computeHeatmap(courses) {
   const map = {};
   courses.filter(c => c.on).forEach(course => {
+    const multiplier = course.loadMultiplier || 1;
     (course.assessments || []).forEach(a => {
       if (!a.date) return;
       const iso = a.date;
@@ -73,7 +74,7 @@ function computeHeatmap(courses) {
       map[iso].assessments.push({ course: course.name, name: a.name });
       getGradingDays(iso).forEach(g => {
         if (!map[g]) map[g] = { assessments: [], count: 0 };
-        map[g].count++;
+        map[g].count += multiplier;
       });
     });
   });

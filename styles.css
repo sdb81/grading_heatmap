@@ -165,6 +165,25 @@ body {
   justify-content: space-between;
 }
 
+.multiplier-btn {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  background: #f0ede8;
+  color: #555;
+  cursor: pointer;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.multiplier-btn.active {
+  background: #8B0000;
+  color: #fff;
+  border-color: #8B0000;
+}
+
 .empty-msg {
   font-size: 11px;
   color: #353535;
