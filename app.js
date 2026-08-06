@@ -17,8 +17,19 @@ class GradingHeatmapApp {
   init() {
     this.render();
     this.attachEventListeners();
+    this.initSidebarBehavior();
   }
 
+  initSidebarBehavior() {
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const hamburger = document.getElementById('hamburger-btn');
+    if (window.innerWidth <= 768 && sidebar?.classList.contains('open') && !sidebar.contains(e.target) && !hamburger?.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  }, true);
+  }
+  
   render() {
     const root = document.getElementById("root");
     root.innerHTML = this.getHTML();
@@ -664,12 +675,6 @@ attachEventListeners() {
       e.stopPropagation();
       document.querySelector('.sidebar')?.classList.toggle('open');
     });
-    document.addEventListener('click', (e) => {
-      const sidebar = document.querySelector('.sidebar');
-      if (window.innerWidth <= 768 && sidebar?.classList.contains('open') && !sidebar.contains(e.target) && !hamburger.contains(e.target)) {
-        sidebar.classList.remove('open');
-      }
-    }, true);
   }
 
     // Semester buttons
