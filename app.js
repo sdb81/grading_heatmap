@@ -124,7 +124,7 @@ class GradingHeatmapApp {
               <li style="margin-bottom:8px;">Log into Rooster using your UvA account at <a href="https://rooster.uva.nl" target="_blank" style="color:#8B0000;">rooster.uva.nl</a>.</li>
               <li style="margin-bottom:8px;">Press <strong>Add Timetable</strong>, and add the preferred course or programme. The tool supports importing at course-level and at programme-level.</li>
               <li style="margin-bottom:8px;">Once added, select the courses and/or programmes you would like to include. Then press <strong>Download</strong> &rsaquo; <strong>iCalendar</strong> &rsaquo; <strong>All year</strong> and <strong>Download</strong>.</li>
-              <li style="margin-bottom:8px;">Press the <strong>Import from Rooster</strong> button and select the file you just downloaded.</li>
+              <li style="margin-bottom:8px;">On this page, press the <strong>Import from Rooster</strong> button and select the file you just downloaded.</li>
               <li style="margin-bottom:8px;">Select the exams, resits and other activities you want to include or exclude. Note that sometimes, non-exam events may be presented in this overview.</li>
               <li>Press <strong>Import</strong>.</li>
             </ol>
