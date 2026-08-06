@@ -74,10 +74,10 @@ class GradingHeatmapApp {
           <div class="sidebar-label" style="margin-bottom:6px;">Legend</div>
           ${[
             ["#b8b3ad","Assessment date"],
-            ["rgba(200,80,80,0.2)","Light load (1 course)"],
-            ["rgba(180,40,40,0.4)","Medium load (2 courses)"],
-            ["rgba(160,0,0,0.6)","Heavy load (3 courses)"],
-            ["rgba(139,0,0,0.85)","Very heavy (4+ courses)"],
+            ["rgba(200,80,80,0.2)","1 Course"],
+            ["rgba(180,40,40,0.4)","2 Courses"],
+            ["rgba(160,0,0,0.6)","3 Courses"],
+            ["rgba(139,0,0,0.85)","4+ Courses"],
             ["#f5ede0","Teaching-free week"],
             ["#e8e8e8","Public holiday"],
             ["#f0f0f0","Weekend"],
@@ -166,16 +166,11 @@ class GradingHeatmapApp {
       if (shouldAdvance) { monthInput.focus(); monthInput.select(); }
     });
 
-    monthInput.addEventListener('input', () => {
-      let val = monthInput.value.replace(/\D/g, '').slice(0, 2);
-      monthInput.value = val;
+    monthInput.addEventListener('blur', () => {
+      const val = monthInput.value.replace(/\D/g, '');
       const m = parseInt(val);
-      const shouldAdvance = val.length === 2 || (val.length === 1 && m >= 2 && m <= 9);
-      if (shouldAdvance) {
-        const autoYear = m >= 9 ? '2026' : '2027';
-        yearInput.value = autoYear;
-        yearInput.focus();
-        yearInput.select();
+      if (m >= 1 && m <= 12) {
+        yearInput.value = m >= 9 ? '2026' : '2027';
       }
     });
 
@@ -376,8 +371,8 @@ class GradingHeatmapApp {
       <main class="calendar-main">
         <div class="semester-row">
           <button class="semester-btn ${this.semester === 0 ? "active" : ""}" data-sem="0">All</button>
-          <button class="semester-btn ${this.semester === 1 ? "active" : ""}" data-sem="1">Semester 1 — Aug 2026 → Jan 2027</button>
-          <button class="semester-btn ${this.semester === 2 ? "active" : ""}" data-sem="2">Semester 2 — Feb 2027 → Jul 2027</button>
+          <button class="semester-btn ${this.semester === 1 ? "active" : ""}" data-sem="1">Semester 1</button>
+          <button class="semester-btn ${this.semester === 2 ? "active" : ""}" data-sem="2">Semester 2</button>
         </div>
 
         <div id="calendar-ref" style="background:#f0ede8;padding:4px;">
@@ -636,6 +631,16 @@ class GradingHeatmapApp {
         monthInput.addEventListener("keydown", e => {
           if (e.key === "Backspace" && monthInput.value.length === 0) {
             e.preventDefault(); dayInput?.focus();
+          }
+        });
+        monthInput.addEventListener('blur', () => {
+          const val = monthInput.value.replace(/\D/g, '');
+          const m = parseInt(val);
+          if (m >= 1 && m <= 12) {
+            const autoYear = m >= 9 ? '2026' : '2027';
+            this.newAssessment.year = autoYear;
+            yearInput.value = autoYear;
+            yearInput.removeAttribute('readonly');
           }
         });
       }
