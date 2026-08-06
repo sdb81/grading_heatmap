@@ -10,3 +10,5 @@ to do:
 - think through how to save/log specific courses + dates to remove unnecessary double work?
 - add prompt for 'add name for assesmsent' when no name yet
 - change icons for hover assignment and for (x) grading window active
+
+test
