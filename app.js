@@ -67,7 +67,7 @@ class GradingHeatmapApp {
         <div class="header-right">
           <button class="header-btn" id="share-btn"><i class="fa-solid fa-link"></i>${this.shareMsg ? ` — ${this.shareMsg}` : " Share"}</button>
           <button class="header-btn" id="png-btn"><i class="fa-solid fa-circle-down"></i> Save</button>
-          <button class="header-btn danger" id="reset-btn"><i class="fa-solid fa-link"></i> Reset</button>
+          <button class="header-btn danger" id="reset-btn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
         </div>
       </header>
 
