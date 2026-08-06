@@ -59,7 +59,7 @@ class GradingHeatmapApp {
       </style>
 
       <header class="header">
-      <button class="hamburger" id="hamburger-btn" style="z-index:1001;background:#8B0000;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:18px;display:none;">☰</button>
+      <button class="hamburger" id="hamburger-btn" style="z-index:1001;background:#bc0031;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:18px;display:none;">☰</button>
         <div class="header-left">
           <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/Amsterdamuniversitylogo.svg" alt="UvA logo" class="uva-logo" />
           <span class="header-title">Grading Heatmap</span>
@@ -85,7 +85,7 @@ class GradingHeatmapApp {
       <aside class="sidebar">
         <div class="sidebar-label">Courses</div>
         <div style="display:flex;gap:6px;margin-bottom:6px;width:100%;">
-          <button id="import-rooster-btn" style="flex:1;background:#8B0000;color:#fff;border:none;border-radius:4px;padding:6px 10px;font-size:12px;cursor:pointer;font-weight:600;">
+          <button id="import-rooster-btn" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:4px;padding:6px 10px;font-size:12px;cursor:pointer;font-weight:600;">
             <i class="fa-solid fa-file-import"></i>  Import from Rooster
           </button>
           <button id="import-help-btn" style="background:#dad6d0;color:#555;border:none;border-radius:4px;padding:6px 8px;font-size:12px;cursor:pointer;font-weight:700;">?</button>
@@ -150,7 +150,7 @@ class GradingHeatmapApp {
           <h3 style="margin:0 0 12px 0;color:#222;">How to import from UvA Rooster</h3>
           <div style="font-size:12px;color:#333;line-height:1.7;overflow-y:auto;">
             <ol style="margin:0;padding-left:16px;">
-              <li style="margin-bottom:8px;">Log into Rooster using your UvA account at <a href="https://rooster.uva.nl" target="_blank" style="color:#8B0000;">rooster.uva.nl</a>.</li>
+              <li style="margin-bottom:8px;">Log into Rooster using your UvA account at <a href="https://rooster.uva.nl" target="_blank" style="color:#bc0031;">rooster.uva.nl</a>.</li>
               <li style="margin-bottom:8px;">Press <strong>Add Timetable</strong>, and add the preferred course or programme. The tool supports importing at course-level and at programme-level.</li>
               <li style="margin-bottom:8px;">Once added, select the courses and/or programmes you would like to include. Then press <strong>Download</strong> &rsaquo; <strong>iCalendar</strong> &rsaquo; <strong>All year</strong> and <strong>Download</strong>.</li>
               <li style="margin-bottom:8px;">On this page, press the <strong>Import from Rooster</strong> button and select the file you just downloaded.</li>
@@ -202,7 +202,7 @@ class GradingHeatmapApp {
             </div>
           </div>
           <div style="display:flex;gap:8px;">
-            <button id="modal-save" style="flex:1;background:#8B0000;color:#fff;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Save</button>
+            <button id="modal-save" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Save</button>
             <button id="modal-cancel" style="flex:1;background:#ddd;color:#333;border:none;border-radius:4px;padding:8px;cursor:pointer;">Cancel</button>
           </div>
         </div>
@@ -305,7 +305,7 @@ class GradingHeatmapApp {
       return `
         <div style="margin-bottom:14px;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-            <span style="font-weight:600;font-size:12px;color:#8B0000;flex:1;">${courseName}</span>
+            <span style="font-weight:600;font-size:12px;color:#bc0031;flex:1;">${courseName}</span>
             <select class="import-year-select" data-course="${encodeURIComponent(courseName)}"
               style="font-size:11px;border:1px solid #ddd;border-radius:4px;padding:2px 4px;">
               ${yearOptions}
@@ -314,7 +314,7 @@ class GradingHeatmapApp {
           ${items.map((item, i) => `
             <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#333;margin-bottom:3px;cursor:pointer;">
               <input type="checkbox" class="import-check" data-course="${encodeURIComponent(courseName)}" data-index="${i}" checked
-                style="accent-color:#8B0000;">
+                style="accent-color:#bc0031;">
               <span>${item.label} — ${item.date}</span>
             </label>
           `).join('')}
@@ -331,7 +331,7 @@ class GradingHeatmapApp {
             ${groupHTML}
           </div>
           <div style="display:flex;gap:8px;margin-top:14px;">
-            <button id="modal-save" style="flex:1;background:#8B0000;color:#fff;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Import</button>
+            <button id="modal-save" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Import</button>
             <button id="modal-cancel" style="flex:1;background:#ddd;color:#333;border:none;border-radius:4px;padding:8px;cursor:pointer;">Cancel</button>
           </div>
         </div>
@@ -433,7 +433,7 @@ class GradingHeatmapApp {
             <input type="text" id="modal-name" placeholder="e.g. Exam, Essay" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;box-sizing:border-box;">
           </div>
           <div style="display:flex;gap:8px;">
-            <button id="modal-add" style="flex:1;background:#8B0000;color:#fff;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Add</button>
+            <button id="modal-add" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Add</button>
             <button id="modal-cancel" style="flex:1;background:#ddd;color:#333;border:none;border-radius:4px;padding:8px;cursor:pointer;">Cancel</button>
           </div>
         </div>
@@ -1072,7 +1072,7 @@ attachEventListeners() {
 
         if (course.loadMultiplier === 2) {
           const badge = document.createElement('div');
-          badge.style.cssText = 'font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;background:#8B0000;color:#fff;flex-shrink:0;';
+          badge.style.cssText = 'font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;background:#bc0031;color:#fff;flex-shrink:0;';
           badge.textContent = '2×';
           header.appendChild(badge);
         }
