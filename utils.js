@@ -107,3 +107,59 @@ function dayBgColor(iso, heatData) {
   }
   return { bg, fg: cnt >= 2 ? "#fff" : "#1a1a1a", bold: false };
 }
+
+function parseICS(text) {
+  const events = [];
+  const blocks = text.split('BEGIN:VEVENT');
+  blocks.shift(); // remove header
+
+  for (const block of blocks) {
+    // Extract fields
+    const summary = (block.match(/^SUMMARY:(.+)$/m) || [])[1]?.trim() || '';
+    const dtstart = (block.match(/^DTSTART[^:]*:(.+)$/m) || [])[1]?.trim() || '';
+    const description = block
+      .split('DESCRIPTION:')[1]?.split('\nTRANSP')[0]
+      ?.replace(/\n /g, '') // unfold wrapped lines
+      ?.replace(/\\n/g, '\n') || '';
+
+    // Extract type
+    const typeMatch = description.match(/Type:\s*(.+)/i);
+    const type = typeMatch ? typeMatch[1].trim().toLowerCase() : '';
+
+    // Filter
+    if (!type || type.includes('inspection') || type.includes('lecture') || type.includes('seminar')) continue;
+
+    // Strip [DRAFT] from course name
+    const courseName = summary.replace(/^\[DRAFT\]\s*/i, '').trim();
+
+    // Extract assessment label (the short note after staff block)
+    const labelMatch = description.match(/Staff member\(s\):[^\n]+\n+([^\n]+)/);
+    let label = labelMatch ? labelMatch[1].trim() : '';
+    // Discard if it looks like boilerplate
+    if (!label || label.toLowerCase().includes('the times') || label.toLowerCase().includes('size:') || label.toLowerCase().includes('study guide')) {
+      // Fall back to cleaned type string
+      label = typeMatch[1].trim()
+        .replace(/computer-based /i, '')
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    // Parse date from DTSTART (UTC → Amsterdam local)
+    const dateMatch = dtstart.match(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/);
+    if (!dateMatch) continue;
+    const utcDate = new Date(Date.UTC(
+      parseInt(dateMatch[1]),
+      parseInt(dateMatch[2]) - 1,
+      parseInt(dateMatch[3]),
+      parseInt(dateMatch[4]),
+      parseInt(dateMatch[5])
+    ));
+    const local = new Date(utcDate.toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
+    const day   = String(local.getDate()).padStart(2, '0');
+    const month = String(local.getMonth() + 1).padStart(2, '0');
+    const year  = String(local.getFullYear());
+
+    events.push({ courseName, label, date: `${day}/${month}/${year}`, day, month, year });
+  }
+
+  return events;
+}

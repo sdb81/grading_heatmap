@@ -55,6 +55,12 @@ class GradingHeatmapApp {
     return `
       <aside class="sidebar">
         <div class="sidebar-label">Courses</div>
+        <div style="display:flex;gap:6px;margin-bottom:6px;width:100%;">
+          <button id="import-rooster-btn" style="flex:1;background:#8B0000;color:#fff;border:none;border-radius:4px;padding:6px 10px;font-size:12px;cursor:pointer;font-weight:600;">
+            <i class="fa-solid fa-file-import"></i> Import from Rooster
+          </button>
+          <button id="import-help-btn" style="background:#dad6d0;color:#555;border:none;border-radius:4px;padding:6px 8px;font-size:12px;cursor:pointer;font-weight:700;">?</button>
+        </div>
         <div class="add-row">
           <input class="input" id="course-input" placeholder="Course name…" value="${this.newCourseName}">
           <button class="add-btn" id="add-course-btn">+</button>
@@ -64,6 +70,11 @@ class GradingHeatmapApp {
           <div class="year-section" id="year-${yi}" data-year="${yi}">
             <div class="year-label">
               <span>${group.label === "Unassigned" ? "Unassigned: drag to year" : group.label}</span>
+              <button class="icon-btn year-toggle-btn" data-year="${yi}" title="Show/hide all">
+                ${group.courses.every(c => c.on)
+                  ? '<i class="fa-solid fa-eye"></i>'
+                  : '<i class="fa-solid fa-eye-slash"></i>'}
+              </button>
             </div>
             ${group.courses.length === 0 ? '<div class="empty-msg">No courses</div>' : ''}
             ${group.courses.map(c => this.getCourseCardHTML(c)).join("")}
@@ -102,7 +113,41 @@ class GradingHeatmapApp {
     this.render();
   }
   
+  showImportHelpModal() {
+    if (document.getElementById('help-modal-overlay')) return;
+    const html = `
+      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;" id="help-modal-overlay">
+        <div style="background:#fff;border-radius:8px;padding:20px;width:360px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,0.3);">
+          <h3 style="margin:0 0 12px 0;color:#222;">How to import from UvA Rooster</h3>
+          <div style="font-size:12px;color:#333;line-height:1.7;overflow-y:auto;">
+            <ol style="margin:0;padding-left:16px;">
+              <li style="margin-bottom:8px;">Log into Rooster using your UvA account at <a href="https://rooster.uva.nl" target="_blank" style="color:#8B0000;">rooster.uva.nl</a>.</li>
+              <li style="margin-bottom:8px;">Press <strong>Add Timetable</strong>, and add the preferred course or programme. The tool supports importing at course-level and at programme-level.</li>
+              <li style="margin-bottom:8px;">Once added, select the courses and/or programmes you would like to include. Then press <strong>Download</strong> &rsaquo; <strong>iCalendar</strong> &rsaquo; <strong>All year</strong> and <strong>Download</strong>.</li>
+              <li style="margin-bottom:8px;">Press the <strong>Import from Rooster</strong> button and select the file you just downloaded.</li>
+              <li style="margin-bottom:8px;">Select the exams, resits and other activities you want to include or exclude. Note that sometimes, non-exam events may be presented in this overview.</li>
+              <li>Press <strong>Import</strong>.</li>
+            </ol>
+          </div>
+          <button id="help-modal-close" style="margin-top:16px;background:#ddd;color:#333;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Close</button>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', html);
+    const overlay = document.getElementById('help-modal-overlay');
+    document.getElementById('help-modal-close').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    document.addEventListener('keydown', function handler(e) {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        document.removeEventListener('keydown', handler);
+      }
+    });
+  }
+
   editAssessmentModal(courseId, assessmentId, fromDate = null) {
+    if (document.getElementById('edit-modal-overlay')) return;
     const course = this.state.courses.find(c => c.id === courseId);
     const assessment = course?.assessments.find(a => a.id === assessmentId);
     if (!assessment) return;
@@ -110,7 +155,7 @@ class GradingHeatmapApp {
     const [year, month, day] = assessment.date.split('-');
 
     const html = `
-      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;" id="modal-overlay">
+      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;" id="edit-modal-overlay">
         <div style="background:#fff;border-radius:8px;padding:20px;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,0.3);">
           <h3 style="margin-bottom:12px;color:#222;">Edit Assessment</h3>
           <div style="margin-bottom:8px;">
@@ -137,7 +182,7 @@ class GradingHeatmapApp {
     
     document.body.insertAdjacentHTML('beforeend', html);
 
-    const overlay   = document.getElementById("modal-overlay");
+    const overlay    = document.getElementById("edit-modal-overlay");
     const dayInput   = document.getElementById("modal-day");
     const monthInput = document.getElementById("modal-month");
     const yearInput  = document.getElementById("modal-year");
@@ -194,7 +239,133 @@ class GradingHeatmapApp {
     cancelBtn.addEventListener("click", () => overlay.remove());
   }
 
+  handleICSUpload() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.ics';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const events = parseICS(ev.target.result);
+        if (!events.length) { alert('No importable events found in this file.'); return; }
+        this.showImportPreviewModal(events);
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
+
+  showImportPreviewModal(events) {
+    // Group events by course name
+    const grouped = {};
+    for (const ev of events) {
+      if (!grouped[ev.courseName]) grouped[ev.courseName] = [];
+      grouped[ev.courseName].push(ev);
+    }
+
+    const groupHTML = Object.entries(grouped).map(([courseName, items]) => {
+      const existing = this.state.courses.find(c => c.name.toLowerCase() === courseName.toLowerCase());
+      const currentYear = existing ? (this.state.yearMap[existing.id] ?? 3) : 3;
+
+      const yearOptions = YEAR_LABELS.map((label, i) =>
+        `<option value="${i}" ${i === currentYear ? 'selected' : ''}>${label}</option>`
+      ).join('');
+
+      return `
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="font-weight:600;font-size:12px;color:#8B0000;flex:1;">${courseName}</span>
+            <select class="import-year-select" data-course="${encodeURIComponent(courseName)}"
+              style="font-size:11px;border:1px solid #ddd;border-radius:4px;padding:2px 4px;">
+              ${yearOptions}
+            </select>
+          </div>
+          ${items.map((item, i) => `
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#333;margin-bottom:3px;cursor:pointer;">
+              <input type="checkbox" class="import-check" data-course="${encodeURIComponent(courseName)}" data-index="${i}" checked
+                style="accent-color:#8B0000;">
+              <span>${item.label} — ${item.date}</span>
+            </label>
+          `).join('')}
+        </div>
+      `;
+    }).join('');
+
+    const html = `
+      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;" id="import-preview-overlay">
+        <div style="background:#fff;border-radius:8px;padding:20px;width:340px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,0.3);">
+          <h3 style="margin-bottom:4px;color:#222;">Import from Rooster</h3>
+          <p style="font-size:11px;color:#666;margin-bottom:12px;">Uncheck anything you don't want to import. New courses will be created automatically.</p>
+          <div style="overflow-y:auto;flex:1;padding-right:4px;">
+            ${groupHTML}
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;">
+            <button id="modal-save" style="flex:1;background:#8B0000;color:#fff;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Import</button>
+            <button id="modal-cancel" style="flex:1;background:#ddd;color:#333;border:none;border-radius:4px;padding:8px;cursor:pointer;">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', html);
+    const overlay = document.getElementById("import-preview-overlay");
+    document.getElementById('modal-save').addEventListener('click', () => {
+      const usedColors = this.state.courses.map(c => c.color).filter(Boolean);
+      let colorIndex = 0;
+
+      const checked = document.querySelectorAll('.import-check:checked');
+      checked.forEach(cb => {
+        const courseName = decodeURIComponent(cb.dataset.course);
+        const index = parseInt(cb.dataset.index);
+        const item = grouped[courseName][index];
+
+        // Read year for this course
+        const yearSelect = document.querySelector(
+          `.import-year-select[data-course="${cb.dataset.course}"]`
+        );
+        const yearIndex = yearSelect ? parseInt(yearSelect.value) : 3;
+
+        // Find or create course
+        let course = this.state.courses.find(c =>
+          c.name.toLowerCase() === courseName.toLowerCase()
+        );
+        if (!course) {
+          // Pick next unused colour
+          const color = COURSE_COLORS.find(c => !usedColors.includes(c))
+            || COURSE_COLORS[colorIndex % COURSE_COLORS.length];
+          colorIndex++;
+          usedColors.push(color);
+
+          course = { id: uid(), name: courseName, color, assessments: [] };
+          this.state.courses.push(course);
+        }
+
+        // Assign year
+        if (!this.state.yearMap) this.state.yearMap = {};
+        this.state.yearMap[course.id] = yearIndex;
+
+        // Avoid duplicates
+        const iso = `${item.year}-${item.month}-${item.day}`;
+        const exists = course.assessments.some(a => a.name === item.label && a.date === iso);
+        if (!exists) {
+          course.assessments.push({ id: uid(), name: item.label, date: iso });
+        }
+      });
+
+      saveState(this.state);
+      overlay.remove();
+      this.render();
+    });
+
+    document.getElementById('modal-cancel').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') overlay.remove(); }, { once: true });
+  }
+
   showDatePickerModal(iso) {
+    if (document.getElementById('datepicker-overlay')) return;
     const [year, month, day] = iso.split('-');
     const assessmentsOnDay = this.heatData[iso]?.assessments || [];
     
@@ -217,7 +388,7 @@ class GradingHeatmapApp {
     }
 
     const html = `
-      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;" id="modal-overlay">
+      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;" id="datepicker-overlay">
         <div style="background:#fff;border-radius:8px;padding:20px;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,0.3);">
           <h3 style="margin-bottom:12px;color:#222;">Add Assessment for ${day}/${month}/${year}</h3>
           ${editOptions}
@@ -241,51 +412,40 @@ class GradingHeatmapApp {
     `;
     
     document.body.insertAdjacentHTML('beforeend', html);
-    
-    // Add keyboard support
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        document.getElementById("modal-overlay")?.remove();
-      }
-      if (e.key === 'Enter' && document.getElementById("modal-add")) {
-        document.getElementById("modal-add").click();
-      }
+    const overlay = document.getElementById('datepicker-overlay');
+    const addBtn  = document.getElementById('modal-add');
+    const cancelBtn = document.getElementById('modal-cancel');
+
+    const close = () => overlay.remove();
+
+    cancelBtn.addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+    document.addEventListener('keydown', function handler(e) {
+      if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
+      if (e.key === 'Enter')  { addBtn?.click(); }
     });
 
-    document.getElementById("modal-add").addEventListener("click", () => {
-      const courseId = document.getElementById("modal-course").value;
-      const name = document.getElementById("modal-name").value.trim();
-      if (!courseId || !name) {
-        alert("Please select a course and enter a name");
-        return;
-      }
-      
+    addBtn.addEventListener('click', () => {
+      const courseId = document.getElementById('modal-course').value;
+      const name = document.getElementById('modal-name').value.trim();
+      if (!courseId || !name) { alert('Please select a course and enter a name'); return; }
       const course = this.state.courses.find(c => c.id === courseId);
       if (course) {
-        course.assessments.push({
-          id: uid(),
-          name: name,
-          date: iso
-        });
+        course.assessments.push({ id: uid(), name, date: iso });
         saveState(this.state);
       }
-      
-      document.getElementById("modal-overlay").remove();
+      close();
       this.render();
     });
-    
-    document.getElementById("modal-cancel").addEventListener("click", () => {
-      document.getElementById("modal-overlay").remove();
-    });
 
-    // Add edit listeners
+    // Edit buttons
     assessmentsOnDay.forEach(a => {
       const course = this.state.courses.find(c => c.name === a.course);
       const assessment = course?.assessments.find(x => x.name === a.name);
-      const btn = document.getElementById(`edit-${assessment.id}`);
-      if (btn) {
-        btn.addEventListener("click", () => {
-          document.getElementById("modal-overlay").remove();
+      if (assessment) {
+        document.getElementById(`edit-${assessment.id}`)?.addEventListener('click', () => {
+          close();
           this.editAssessmentModal(course.id, assessment.id, true);
         });
       }
@@ -456,6 +616,8 @@ class GradingHeatmapApp {
     document.getElementById("share-btn")?.addEventListener("click", () => this.share());
     document.getElementById("png-btn")?.addEventListener("click", () => this.downloadPNG());
     document.getElementById("reset-btn")?.addEventListener("click", () => this.reset());
+    document.getElementById('import-rooster-btn')?.addEventListener('click', () => this.handleICSUpload());
+    document.getElementById('import-help-btn')?.addEventListener('click', () => this.showImportHelpModal());
 
     // Semester buttons
     document.querySelectorAll(".semester-btn").forEach(btn => {
@@ -510,6 +672,18 @@ class GradingHeatmapApp {
         this.newAssessment.month = document.getElementById(`assess-month-${cid}`)?.value || "";
         this.newAssessment.year = document.getElementById(`assess-year-${cid}`)?.value || "";
         this.addAssessment(cid);
+      });
+    });
+
+    // Year toggle buttons
+    document.querySelectorAll('.year-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const yi = parseInt(btn.dataset.year);
+        const courses = this.state.courses.filter(c => (this.state.yearMap[c.id] ?? 3) === yi);
+        const allOn = courses.every(c => c.on);
+        courses.forEach(c => c.on = !allOn);
+        saveState(this.state);
+        this.render();
       });
     });
 
