@@ -98,7 +98,7 @@ class GradingHeatmapApp {
         ${grouped.map((group, yi) => `
           <div class="year-section" id="year-${yi}" data-year="${yi}">
             <div class="year-label">
-              <span>${group.label === "Unassigned" ? "Unassigned: drag to year" : group.label}</span>
+              <span>${group.label === "Unassigned" ? "No year specified" : group.label}</span>
               <button class="icon-btn year-toggle-btn" data-year="${yi}" title="Show/hide all">
                 ${group.courses.every(c => c.on)
                   ? '<i class="fa-solid fa-eye"></i>'
