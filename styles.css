@@ -277,7 +277,7 @@ body {
   background: #fff;
   color: #222;
   border: 1px solid #ddd;
-  border-radius: 3px;
+  border-radius: 8px;
   padding: 4px 6px;
   font-size: 11px;
   outline: none;
@@ -456,7 +456,7 @@ body {
   position: fixed;
   background: #111;
   color: #fff;
-  border-radius: 5px;
+  border-radius: 8px;
   padding: 7px 11px;
   font-size: 11px;
   pointer-events: none;
