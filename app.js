@@ -58,7 +58,8 @@ class GradingHeatmapApp {
         .header-left { flex: 1; min-width: 0; overflow: hidden; }
         .header-title { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .header-right { display: flex; flex-wrap: wrap; gap: 4px; }
-        .header-btn { font-size: 11px; padding: 4px 8px; }
+        .header-btn { font-size: 11px; padding: 8px 8px; }
+        .header-btn.danger { font-size: 11px; padding: 8px 8px; }
       }
       </style>
 
@@ -606,7 +607,7 @@ class GradingHeatmapApp {
     return `
       <main class="calendar-main">
         <div class="semester-row">
-          <button class="semester-btn ${this.semester === 0 ? "active" : ""}" data-sem="0">All</button>
+          <button class="semester-btn ${this.semester === 0 ? "active" : ""}" data-sem="0">2026-2027</button>
           <button class="semester-btn ${this.semester === 1 ? "active" : ""}" data-sem="1">Semester 1</button>
           <button class="semester-btn ${this.semester === 2 ? "active" : ""}" data-sem="2">Semester 2</button>
         </div>
