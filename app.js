@@ -15,6 +15,7 @@ class GradingHeatmapApp {
   }
   
   init() {
+    this.showIntroOnFirstLaunch();
     this.render();
     this.attachEventListeners();
     this.initSidebarBehavior();
@@ -42,6 +43,9 @@ class GradingHeatmapApp {
 
     return `
       <style>
+        * { font-family: "Source Sans 3", "Source Sans Pro", Arial, sans-serif; }
+        .header, .header-title, h1, h2, h3 { font-family: "Source Serif 4", "Times New Roman", serif; }
+        
       @media (max-width: 768px) {
         .sidebar { position: fixed; left: -100%; top: 0; width: 250px; height: 100vh; background: #fff; z-index: 999; transition: left 0.3s; overflow-y: auto; box-shadow: 2px 0 8px rgba(0,0,0,0.1); padding-top: 75px; }
         .sidebar.open { left: 0; }
@@ -85,14 +89,14 @@ class GradingHeatmapApp {
       <aside class="sidebar">
         <div class="sidebar-label">Courses</div>
         <div style="display:flex;gap:6px;margin-bottom:6px;width:100%;">
-          <button id="import-rooster-btn" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:4px;padding:6px 10px;font-size:12px;cursor:pointer;font-weight:600;">
+          <button id="import-rooster-btn" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;font-weight:600;">
             <i class="fa-solid fa-file-import"></i>  Import from Rooster
           </button>
-          <button id="import-help-btn" style="background:#dad6d0;color:#555;border:none;border-radius:4px;padding:6px 8px;font-size:12px;cursor:pointer;font-weight:700;">?</button>
+          <button id="import-help-btn" style="background:#dad6d0;color:#555;border:none;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:700;transition:background 0.2s;hover: { background: #bbb2ad; };"><i class="fa-solid fa-question"></i></button>
         </div>
         <div class="add-row">
           <input class="input" id="course-input" placeholder="Course name…" value="${this.newCourseName}">
-          <button class="add-btn" id="add-course-btn">+</button>
+          <button class="add-btn" id="add-course-btn"><i class="fa-solid fa-plus"></i></button>
         </div>
 
         ${grouped.map((group, yi) => `
@@ -142,30 +146,30 @@ class GradingHeatmapApp {
     this.render();
   }
   
-  showImportHelpModal() {
-    if (document.getElementById('help-modal-overlay')) return;
+  showModal(title, content, options = {}) {
+    if (document.getElementById('modal-overlay')) return;
+
+    const { showCloseButton = true, closeButtonText = 'Close' } = options;
+
     const html = `
-      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;" id="help-modal-overlay">
-        <div style="background:#fff;border-radius:8px;padding:20px;width:360px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,0.3);">
-          <h3 style="margin:0 0 12px 0;color:#222;">How to import from UvA Rooster</h3>
-          <div style="font-size:12px;color:#333;line-height:1.7;overflow-y:auto;">
-            <ol style="margin:0;padding-left:16px;">
-              <li style="margin-bottom:8px;">Log into Rooster using your UvA account at <a href="https://rooster.uva.nl" target="_blank" style="color:#bc0031;">rooster.uva.nl</a>.</li>
-              <li style="margin-bottom:8px;">Press <strong>Add Timetable</strong>, and add the preferred course or programme. The tool supports importing at course-level and at programme-level.</li>
-              <li style="margin-bottom:8px;">Once added, select the courses and/or programmes you would like to include. Then press <strong>Download</strong> &rsaquo; <strong>iCalendar</strong> &rsaquo; <strong>All year</strong> and <strong>Download</strong>.</li>
-              <li style="margin-bottom:8px;">On this page, press the <strong>Import from Rooster</strong> button and select the file you just downloaded.</li>
-              <li style="margin-bottom:8px;">Select the exams, resits and other activities you want to include or exclude. Note that sometimes, non-exam events may be presented in this overview.</li>
-              <li>Press <strong>Import</strong>.</li>
-            </ol>
+      <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+          <h2>${title}</h2>
+          <div class="modal-content">${content}</div>
+          <div class="modal-footer">
+            ${showCloseButton ? `<button class="modal-btn" id="modal-close">${closeButtonText}</button>` : ''}
           </div>
-          <button id="help-modal-close" style="margin-top:16px;background:#ddd;color:#333;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Close</button>
         </div>
       </div>
     `;
 
     document.body.insertAdjacentHTML('beforeend', html);
-    const overlay = document.getElementById('help-modal-overlay');
-    document.getElementById('help-modal-close').addEventListener('click', () => overlay.remove());
+    const overlay = document.getElementById('modal-overlay');
+    
+    if (showCloseButton) {
+      document.getElementById('modal-close').addEventListener('click', () => overlay.remove());
+    }
+    
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     document.addEventListener('keydown', function handler(e) {
       if (e.key === 'Escape') {
@@ -173,6 +177,38 @@ class GradingHeatmapApp {
         document.removeEventListener('keydown', handler);
       }
     });
+  }
+
+  showIntroOnFirstLaunch() {
+    if (!localStorage.getItem('hasVisited')) {
+      const content = `
+        <p>This tool is aimed to help coordinators better understand and plan the grading workload of Junior Lecturers, and help teachers become aware of upcoming grading peaks.
+        It can also help other staff gain insight into the grading workload their courses will bring to other responsibilities.</p>
+        <p>With this tool, you can import courses from your UvA Rooster or add deadlines manually.
+        For each deadline, the tool provides a visual representation of the 15 working day-grading period.</p>
+      `;
+      this.showModal('Welcome to the Grading Heatmap!', content, { closeButtonText: 'Get Started' });
+      localStorage.setItem('hasVisited', 'true');
+    }
+  }
+
+  showImportHelpModal() {
+    const content = `
+      <ol>
+        <li>Log into Rooster using your UvA account at <a href="https://rooster.uva.nl" target="_blank">rooster.uva.nl</a>.</li>
+        <li>Press <strong>Add Timetable</strong> and add the preferred course or programme.</li>
+        <li>Once added, select courses/programmes and press <strong>Download</strong> &rsaquo; <strong>iCalendar</strong> &rsaquo; <strong>All year</strong>.</li>
+        <li>On this page, press the <strong>Import from Rooster</strong> button and select the downloaded file, usually called <em>'timetable_[today's date].ics'</em>.</li>
+        <li>Select exams, resits and activities to include/exclude. Note that courses whose deadlines are not listed on Rooster should be added manually.</li>
+        <li>Press <strong>Import</strong>.</li>
+      </ol>
+    `;
+    this.showModal('How to import from UvA Rooster', content);
+  }
+
+  showIntroModal() {
+    const content = `<p>Welcome to your timetable tool!</p>`;
+    this.showModal('Welcome', content);
   }
 
   editAssessmentModal(courseId, assessmentId, fromDate = null) {
@@ -322,24 +358,29 @@ class GradingHeatmapApp {
       `;
     }).join('');
 
+    const content = `
+      <p style="font-size:0.92rem;color:#666;margin-bottom:12px;">Uncheck anything you don't want to import. New courses will be created automatically; you can assign the year here or later.</p>
+      <div style="overflow-y:auto;flex:1;padding-right:4px;">
+        ${groupHTML}
+      </div>
+    `;
+
     const html = `
-      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;" id="import-preview-overlay">
-        <div style="background:#fff;border-radius:8px;padding:20px;width:340px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,0.3);">
-          <h3 style="margin-bottom:4px;color:#222;">Import from Rooster</h3>
-          <p style="font-size:11px;color:#666;margin-bottom:12px;">Uncheck anything you don't want to import. New courses will be created automatically.</p>
-          <div style="overflow-y:auto;flex:1;padding-right:4px;">
-            ${groupHTML}
-          </div>
-          <div style="display:flex;gap:8px;margin-top:14px;">
-            <button id="modal-save" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Import</button>
-            <button id="modal-cancel" style="flex:1;background:#ddd;color:#333;border:none;border-radius:4px;padding:8px;cursor:pointer;">Cancel</button>
+      <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+          <h2>Import from Rooster</h2>
+          <div class="modal-content">${content}</div>
+          <div class="modal-footer">
+            <button id="modal-cancel" class="modal-btn secondary">Cancel</button>
+            <button id="modal-save" class="modal-btn">Import</button>
           </div>
         </div>
       </div>
     `;
 
     document.body.insertAdjacentHTML('beforeend', html);
-    const overlay = document.getElementById("import-preview-overlay");
+    const overlay = document.getElementById('modal-overlay');
+
     document.getElementById('modal-save').addEventListener('click', () => {
       const usedColors = this.state.courses.map(c => c.color).filter(Boolean);
       let colorIndex = 0;
@@ -367,7 +408,7 @@ class GradingHeatmapApp {
           colorIndex++;
           usedColors.push(color);
 
-          course = { id: uid(), name: courseName, color, assessments: [] };
+          course = { id: uid(), name: courseName, color, on: true, assessments: [] };
           this.state.courses.push(course);
         }
 
@@ -390,7 +431,12 @@ class GradingHeatmapApp {
 
     document.getElementById('modal-cancel').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') overlay.remove(); }, { once: true });
+    document.addEventListener('keydown', function handler(e) {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        document.removeEventListener('keydown', handler);
+      }
+    });
   }
 
   showDatePickerModal(iso) {
@@ -488,7 +534,7 @@ class GradingHeatmapApp {
       <div class="course-card" id="course-${course.id}" data-course-id="${course.id}" style="border-left-color:${color};" draggable="true">
         <div class="course-header">
         <span style="font-size:10px;color:#ccc;user-select:none;cursor:grab;"><i class="fa-solid fa-grip-vertical"></i></span>
-          <input type="color" id="color-${course.id}" value="${color}" class="color-picker" data-id="${course.id}" style="width:20px;height:20px;border:none;border-radius:3px;cursor:pointer;padding:0;">
+          <input type="color" id="color-${course.id}" value="${color}" class="color-picker" data-id="${course.id}" style="width:14px;height:14px;border:none;border-radius:50%;cursor:pointer;padding:0;flex-shrink:0;">
           <span class="course-name ${!course.on ? "off" : ""}">${course.name}</span>
           <button class="multiplier-btn ${course.loadMultiplier === 2 ? 'active' : ''}" data-id="${course.id}" title="Parallel groups">2×</button>
           <button class="icon-btn toggle-btn" data-id="${course.id}" title="${course.on ? "Hide" : "Show"}">
@@ -592,11 +638,11 @@ class GradingHeatmapApp {
                 const hasData = !!this.heatData[iso];
                 let title = "";
                 if (isVrije(iso)) {
-                  title = "Onderwijsvrije week";
+                  title = "Teaching-free Week";
                 } else if (typeof FEESTDAGEN_MAP !== 'undefined' && FEESTDAGEN_MAP[iso]) {
                   title = FEESTDAGEN_MAP[iso];
                 } else if (isFeestdag(iso)) {
-                  title = "Nationale feestdag";
+                  title = "National Holiday";
                 }
                 let borderColor = "transparent";
 
@@ -807,9 +853,16 @@ attachEventListeners() {
     // Day cells tooltip
     document.querySelectorAll(".day-cell.has-data").forEach(cell => {
       cell.addEventListener("mouseenter", e => this.showTooltip(e, cell.dataset.iso));
-      cell.addEventListener("mouseleave", () => {
+      cell.addEventListener("mouseleave", (ev) => {
+        const tooltipEl = document.getElementById("tooltip");
+        const related = ev.relatedTarget;
+        const movingIntoTooltip = related && (related.closest('#tooltip') || related.closest('.day-cell.has-data'));
+        if (tooltipEl && movingIntoTooltip) {
+          return; // still over day or tooltip
+        }
         this.tooltip = null;
-        document.getElementById("tooltip")?.remove();
+        tooltipEl?.remove();
+        this.render();
       });
     });
 
@@ -994,7 +1047,14 @@ attachEventListeners() {
     }
   }
 
+  hideTooltip() {
+    this.tooltip = null;
+    this.render();
+  }
+
   showTooltip(e, iso) {
+    document.getElementById("tooltip")?.remove(); // Clear old tooltip
+    
     const h = this.heatData[iso];
     if (!h) return;
     const lines = [];
@@ -1005,8 +1065,30 @@ attachEventListeners() {
     const rect = e.currentTarget.getBoundingClientRect();
     this.tooltip = { x: rect.left + rect.width / 2, y: rect.top, lines };
     this.render();
+    // Remove any deliberate delay flag to minimize perceived latency
+      // Robust auto-hide: coordinate-based, no artificial delay
+    const tipEl = document.getElementById('tooltip');
+    if (tipEl) {
+      const onMove = (ev) => {
+        const el = document.elementFromPoint(ev.clientX, ev.clientY);
+        const inDay = !!(el && el.closest && el.closest('.day-cell.has-data'));
+        const inTip = !!(el && el.closest && el.closest('#tooltip'));
+        if (!inDay && !inTip) {
+          this.tooltip = null;
+          this.render();
+          document.removeEventListener('mousemove', onMove);
+        }
+      };
+      document.addEventListener('mousemove', onMove);
+      // Also hide when leaving the tooltip itself
+      tipEl.addEventListener('mouseleave', () => {
+        this.tooltip = null;
+        this.render();
+      }, { once: true });
+    }
   }
 
+  
   share() {
     try {
       const url = encodeStateToURL(this.state);
@@ -1025,10 +1107,10 @@ attachEventListeners() {
 
   async downloadPNG() {
     const container = document.createElement('div');
-    container.style.cssText = 'display:flex;gap:20px;background:#f0ede8;padding:20px;font-family:sans-serif;box-sizing:border-box;';
+    container.style.cssText = 'display:flex;gap:20px;background:#f0ede8;padding:20px;font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;box-sizing:border-box;';
 
     const sidebar = document.createElement('div');
-    sidebar.style.cssText = 'flex:0 0 270px;background:#f0ede8;color:#222;display:flex;flex-direction:column;justify-content:space-between;padding:14px 10px;gap:6px;flex-shrink:0;border-radius:8px;font-family:sans-serif;';
+    sidebar.style.cssText = 'flex:0 0 270px;background:#f0ede8;color:#222;display:flex;flex-direction:column;justify-content:space-between;padding:14px 10px;gap:6px;flex-shrink:0;border-radius:8px;font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;';
 
     // Top section: title + course groups
     const topSection = document.createElement('div');
@@ -1049,7 +1131,7 @@ attachEventListeners() {
       yearSection.style.cssText = 'background:#dad6d0;border-radius:8px;padding:8px;margin-bottom:4px;';
 
       const yearLabel = document.createElement('div');
-      yearLabel.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:6px;';
+      yearLabel.style.cssText = 'font-family: "Source Serif 4", "Times New Roman", serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:6px;';
       yearLabel.textContent = group.label === 'Unassigned' ? 'Unassigned' : group.label;
       yearSection.appendChild(yearLabel);
 
@@ -1061,7 +1143,7 @@ attachEventListeners() {
         header.style.cssText = 'display:flex;align-items:center;gap:5px;padding:7px 8px;';
 
         const swatch = document.createElement('div');
-        swatch.style.cssText = `width:20px;height:20px;border-radius:3px;background:${course.color};flex-shrink:0;`;
+        swatch.style.cssText = `width:20px;height:20px;border-radius:50%;background:${course.color};flex-shrink:0;`;
 
         const name = document.createElement('div');
         name.style.cssText = 'flex:1;font-size:12px;font-weight:600;color:#353535;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';

@@ -124,25 +124,56 @@ function parseICS(text) {
       ?.replace(/\\n/g, '\n') || '';
 
     // Extract type
-    const typeMatch = description.match(/Type:\s*(.+)/i);
-    const type = typeMatch ? typeMatch[1].trim().toLowerCase() : '';
+    const descriptionMatch = description.match(/Type:\s*(.+?)(?:\n|$)/);
+    const type = descriptionMatch ? descriptionMatch[1].trim() : '';
 
-    // Filter
-    if (!type || type.includes('inspection') || type.includes('lecture') || type.includes('seminar')) continue;
+    // Exclude these types
+    const excludedTypes = ['tutorial', 'lecture', 'seminar', 'inspection', 'group', 'groep', 'meeting', 'walk-in', 'workshop', 'optional', 'tutoring', 'session', 'practical'];
+    const typeLower = type.toLowerCase().split(':')[0]; // Get only the part before the colon
+    if (excludedTypes.some(excluded => typeLower.includes(excluded))) continue;
 
-    // Strip [DRAFT] from course name
-    const courseName = summary.replace(/^\[DRAFT\]\s*/i, '').trim();
+    // Skip if no type at all
+    if (!type) continue;
 
-    // Extract assessment label (the short note after staff block)
-    const labelMatch = description.match(/Staff member\(s\):[^\n]+\n+([^\n]+)/);
-    let label = labelMatch ? labelMatch[1].trim() : '';
-    // Discard if it looks like boilerplate
-    if (!label || label.toLowerCase().includes('the times') || label.toLowerCase().includes('size:') || label.toLowerCase().includes('study guide')) {
-      // Fall back to cleaned type string
-      label = typeMatch[1].trim()
-        .replace(/computer-based /i, '')
-        .replace(/\b\w/g, c => c.toUpperCase());
+    // Strip [DRAFT] and clean escaped characters from course name
+    let courseName = summary
+      .replace(/^\[DRAFT\]\s*/i, '')
+      .replace(/\\,/g, ',')
+      .replace(/\\n/g, '')
+      .replace(/\\\s+/g, ' ')
+      .trim();
+
+    // Extract assessment label - look for text after "Staff member(s):" line
+    let label = '';
+    const staffMatch = description.match(/Staff member\(s\):[^\n]+\n+([^\n]+)/);
+    if (staffMatch) {
+      label = staffMatch[1].trim();
     }
+    
+    // Boilerplate phrases to exclude
+    const boilerplate = [
+      'the times',
+      'locations',
+      'size:',
+      'study guide',
+      'appointment is managed',
+      'subject to change',
+      'last synchronised'
+    ];
+    
+    // If label is boilerplate, use type instead
+    if (!label || boilerplate.some(phrase => label.toLowerCase().includes(phrase))) {
+      label = type || 'Event';
+    }
+    
+    // Clean up label
+    label = label
+      .replace(/\\,/g, ',')
+      .replace(/\\n/g, '')
+      .replace(/\\\s+/g, ' ')
+      .replace(/computer-based /i, '')
+      .replace(/\b\w/g, c => c.toUpperCase())
+      .trim();
 
     // Parse date from DTSTART (UTC → Amsterdam local)
     const dateMatch = dtstart.match(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/);
