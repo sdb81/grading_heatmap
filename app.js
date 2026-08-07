@@ -1118,7 +1118,7 @@ attachEventListeners() {
     topSection.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
 
     const title = document.createElement('div');
-    title.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:2px;';
+    title.style.cssText = 'font-family: "Source Serif 4", "Times New Roman", serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:2px;';
     title.textContent = 'Courses';
     topSection.appendChild(title);
 
@@ -1199,7 +1199,7 @@ attachEventListeners() {
     legend.style.cssText = 'margin-top:8px;';
 
     const legendTitle = document.createElement('div');
-    legendTitle.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:6px;';
+    legendTitle.style.cssText = 'font-family: "Source Serif 4", "Times New Roman", serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:6px;';
     legendTitle.textContent = 'Legend';
     legend.appendChild(legendTitle);
 
@@ -1249,7 +1249,7 @@ attachEventListeners() {
   }
   reset() {
     if (!confirm("Reset all data?")) return;
-    this.state = DEFAULT;
+    this.state = JSON.parse(JSON.stringify(DEFAULT));
     localStorage.removeItem("uva-heatmap-v2");
     this.render();
   }
