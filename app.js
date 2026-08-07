@@ -89,10 +89,10 @@ class GradingHeatmapApp {
       <aside class="sidebar">
         <div class="sidebar-label">Courses</div>
         <div style="display:flex;gap:6px;margin-bottom:6px;width:100%;">
-          <button id="import-rooster-btn" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;font-weight:600;">
+          <button id="import-rooster-btn" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;font-weight:600;">
             <i class="fa-solid fa-file-import"></i>  Import from Rooster
           </button>
-          <button id="import-help-btn" style="background:#dad6d0;color:#555;border:none;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:700;transition:background 0.2s;hover: { background: #bbb2ad; };"><i class="fa-solid fa-question"></i></button>
+          <button id="import-help-btn" style="background:#e2ded8;color:#555;border:none;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:700;transition:background 0.2s;hover: { background: #bbb2ad; };"><i class="fa-solid fa-question"></i></button>
         </div>
         <div class="add-row">
           <input class="input" id="course-input" placeholder="Course name…" value="${this.newCourseName}">
@@ -611,7 +611,7 @@ class GradingHeatmapApp {
           <button class="semester-btn ${this.semester === 2 ? "active" : ""}" data-sem="2">Semester 2</button>
         </div>
 
-        <div id="calendar-ref" style="background:#f0ede8;padding:4px;">
+        <div id="calendar-ref" style="background:#f8f7f5;padding:4px;">
           <div class="calendar-grid">
             ${months.map(({y, m}) => this.getMonthHTML(y, m)).join("")}
           </div>
@@ -1107,10 +1107,10 @@ attachEventListeners() {
 
   async downloadPNG() {
     const container = document.createElement('div');
-    container.style.cssText = 'display:flex;gap:20px;background:#f0ede8;padding:20px;font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;box-sizing:border-box;';
+    container.style.cssText = 'display:flex;gap:20px;background:#f8f7f5;padding:20px;font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;box-sizing:border-box;';
 
     const sidebar = document.createElement('div');
-    sidebar.style.cssText = 'flex:0 0 270px;background:#f0ede8;color:#222;display:flex;flex-direction:column;justify-content:space-between;padding:14px 10px;gap:6px;flex-shrink:0;border-radius:8px;font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;';
+    sidebar.style.cssText = 'flex:0 0 270px;background:#f8f7f5;color:#222;display:flex;flex-direction:column;justify-content:space-between;padding:14px 10px;gap:6px;flex-shrink:0;border-radius:8px;font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;';
 
     // Top section: title + course groups
     const topSection = document.createElement('div');
@@ -1128,7 +1128,7 @@ attachEventListeners() {
       if (visibleCourses.length === 0) return;
 
       const yearSection = document.createElement('div');
-      yearSection.style.cssText = 'background:#dad6d0;border-radius:8px;padding:8px;margin-bottom:4px;';
+      yearSection.style.cssText = 'background:#e2ded8;border-radius:8px;padding:8px;margin-bottom:4px;';
 
       const yearLabel = document.createElement('div');
       yearLabel.style.cssText = 'font-family: "Source Serif 4", "Times New Roman", serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:6px;';
@@ -1137,7 +1137,7 @@ attachEventListeners() {
 
       visibleCourses.forEach(course => {
         const card = document.createElement('div');
-        card.style.cssText = `background:#f0ede8;border-radius:8px;margin-bottom:4px;border-left:3px solid ${course.color};box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;`;
+        card.style.cssText = `background:#f8f7f5;border-radius:8px;margin-bottom:4px;border-left:3px solid ${course.color};box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;`;
 
         const header = document.createElement('div');
         header.style.cssText = 'display:flex;align-items:center;gap:5px;padding:7px 8px;';
@@ -1238,7 +1238,7 @@ attachEventListeners() {
     container.appendChild(calClone);
     document.body.appendChild(container);
 
-    const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#f0ede8' });
+    const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#f8f7f5' });
     document.body.removeChild(container);
 
     const a = document.createElement('a');
