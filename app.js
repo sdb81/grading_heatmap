@@ -33,8 +33,17 @@ class GradingHeatmapApp {
   
   render() {
     const root = document.getElementById("root");
+    // Preserve scroll positions of the actual scrollable containers
+    const sidebar = document.querySelector(".sidebar");
+    const calendar = document.querySelector(".calendar-main");
+    const sidebarTop = sidebar ? sidebar.scrollTop : 0;
+    const calendarTop = calendar ? calendar.scrollTop : 0;
     root.innerHTML = this.getHTML();
     this.attachEventListeners();
+    const newSidebar = document.querySelector(".sidebar");
+    const newCalendar = document.querySelector(".calendar-main");
+    if (newSidebar) newSidebar.scrollTop = sidebarTop;
+    if (newCalendar) newCalendar.scrollTop = calendarTop;
   }
 
   getHTML() {
