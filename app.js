@@ -561,10 +561,13 @@ class GradingHeatmapApp {
   }
 
   getCourseExpandHTML(course) {
+    const sorted = (course.assessments || [])
+      .slice()
+      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     return `
       <div class="course-expand">
-        ${(course.assessments || []).length === 0 ? '<div style="font-size:10px;color:#555;font-style:italic;margin-bottom:6px;">No assessments yet</div>' : ''}
-        ${(course.assessments || []).map(a => `
+        ${sorted.length === 0 ? '<div style="font-size:10px;color:#555;font-style:italic;margin-bottom:6px;">No assessments yet</div>' : ''}
+        ${sorted.map(a => `
           <div class="assessment-item">
             <div style="flex:1;">
               <div class="assessment-name">${a.name}</div>
