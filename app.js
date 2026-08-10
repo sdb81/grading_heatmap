@@ -1290,11 +1290,15 @@ attachEventListeners() {
   }
 
   async downloadPNG() {
+    // Produce a desktop-sized layout regardless of current viewport (mobile or desktop)
+    const DESKTOP_WIDTH = 1100;
+    const SIDEBAR_WIDTH = 270;
+
     const container = document.createElement('div');
-    container.style.cssText = 'display:flex;gap:20px;background:#f8f7f5;padding:20px;font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;box-sizing:border-box;';
+    container.style.cssText = `display:flex;gap:20px;background:#f8f7f5;padding:20px;font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;box-sizing:border-box;width:${DESKTOP_WIDTH}px;`;
 
     const sidebar = document.createElement('div');
-    sidebar.style.cssText = 'flex:0 0 270px;background:#f8f7f5;color:#222;display:flex;flex-direction:column;justify-content:space-between;padding:14px 10px;gap:6px;flex-shrink:0;border-radius:8px;font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;';
+    sidebar.style.cssText = `flex:0 0 ${SIDEBAR_WIDTH}px;width:${SIDEBAR_WIDTH}px;background:#f8f7f5;color:#222;display:flex;flex-direction:column;justify-content:space-between;padding:14px 10px;gap:6px;flex-shrink:0;border-radius:8px;font-family:"Source Sans 3","Source Sans Pro",Arial,sans-serif;`;
 
     // Top section: title + course groups
     const topSection = document.createElement('div');
@@ -1315,8 +1319,8 @@ attachEventListeners() {
       yearSection.style.cssText = 'background:#e2ded8;border-radius:8px;padding:8px;margin-bottom:4px;';
 
       const yearLabel = document.createElement('div');
-      yearLabel.style.cssText = 'font-family: "Source Serif 4", "Times New Roman", serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:6px;';
-      yearLabel.textContent = group.label === 'Unassigned' ? 'Unassigned' : group.label;
+      yearLabel.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:6px;';
+      yearLabel.textContent = group.label === 'Unassigned' ? 'No Year Specified' : group.label;
       yearSection.appendChild(yearLabel);
 
       visibleCourses.forEach(course => {
@@ -1416,13 +1420,15 @@ attachEventListeners() {
     sidebar.appendChild(legend);
 
     const calClone = document.getElementById('calendar-ref').cloneNode(true);
-    calClone.style.cssText = 'flex:1;';
+    // Force calendar width to fill remaining desktop space so mobile CSS rules don't shrink it
+    calClone.style.cssText = `flex:1;width:${DESKTOP_WIDTH - SIDEBAR_WIDTH - 40}px;`; // account for gaps/padding
 
     container.appendChild(sidebar);
     container.appendChild(calClone);
     document.body.appendChild(container);
 
-    const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#f8f7f5' });
+    // Render at higher scale for crisp output; force width to DESKTOP_WIDTH so result matches desktop layout
+    const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#f8f7f5', width: DESKTOP_WIDTH, useCORS: true });
     document.body.removeChild(container);
 
     const a = document.createElement('a');
