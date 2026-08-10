@@ -243,6 +243,15 @@ body {
   cursor: pointer;
 }
 
+.course-grab {
+  width: 28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.course-card.dragging { opacity: 0.85; transform: scale(0.995); }
+
 .course-dot {
   width: 9px;
   height: 9px;

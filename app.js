@@ -10,25 +10,90 @@ class GradingHeatmapApp {
     this.newCourseName = "";
     this.newAssessment = { name: "", date: "" };
     this.shareMsg = "";
+    this.sidebarOpen = false;
+    this._sidebarAnimating = false;
     
     this.init();
   }
   
   init() {
     this.showIntroOnFirstLaunch();
+    // Ensure a persistent floating hamburger exists so it stays clickable above overlays on small screens only
+    const shouldHaveFloating = window.innerWidth <= 768; // mobile only
+    const existingFh = document.getElementById('floating-hamburger');
+    if (shouldHaveFloating && !existingFh) {
+      const fh = document.createElement('button');
+      fh.id = 'floating-hamburger';
+      fh.className = 'hamburger';
+      fh.innerHTML = '☰';
+      fh.style.cssText = 'position:fixed;left:12px;top:27px;z-index:12000;background:#bc0031;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;';
+      document.body.appendChild(fh);
+    } else if (!shouldHaveFloating && existingFh) {
+      existingFh.remove();
+    }
     this.render();
-    this.attachEventListeners();
     this.initSidebarBehavior();
   }
 
-  initSidebarBehavior() {
-  document.addEventListener('click', (e) => {
-    const sidebar = document.querySelector('.sidebar');
-    const hamburger = document.getElementById('hamburger-btn');
-    if (window.innerWidth <= 768 && sidebar?.classList.contains('open') && !sidebar.contains(e.target) && !hamburger?.contains(e.target)) {
-      sidebar.classList.remove('open');
+  openSidebarAnimated() {
+    if (this.sidebarOpen || this._sidebarAnimating) return;
+    this._sidebarAnimating = true;
+    this.sidebarOpen = true;
+    this.render();
+    // After render, add the class to trigger transition
+    requestAnimationFrame(() => {
+      const sb = document.querySelector('.sidebar');
+      if (!sb) { this._sidebarAnimating = false; return; }
+      // ensure starting state is closed
+      sb.classList.remove('open');
+      // hide floating hamburger while animating/open on small screens or when in landscape (horizontal) mode
+      const fh = document.getElementById('floating-hamburger');
+      const isLandscape = window.innerWidth > window.innerHeight;
+      // hide floating hamburger only in landscape (horizontal) to keep it visible in portrait mobile
+      if (fh && isLandscape) fh.style.display = 'none';
+      // force reflow
+      void sb.offsetWidth;
+      sb.classList.add('open');
+      const onEnd = () => {
+        sb.removeEventListener('transitionend', onEnd);
+        this._sidebarAnimating = false;
+      };
+      sb.addEventListener('transitionend', onEnd);
+    });
+  }
+
+  closeSidebarAnimated() {
+    const sb = document.querySelector('.sidebar');
+    if (this._sidebarAnimating) return;
+    this._sidebarAnimating = true;
+    const fh = document.getElementById('floating-hamburger');
+    if (sb && sb.classList.contains('open')) {
+      // attach listener first, then remove class to ensure transitionend is caught
+      const onEnd = (e) => {
+        sb.removeEventListener('transitionend', onEnd);
+          this._sidebarAnimating = false;
+          this.sidebarOpen = false;
+          const isLandscape = window.innerWidth > window.innerHeight;
+          if (fh && isLandscape) fh.style.display = 'flex';
+        this.render();
+      };
+      sb.addEventListener('transitionend', onEnd);
+      // remove class to start transition out
+      // force reflow to ensure transition starts
+      void sb.offsetWidth;
+      sb.classList.remove('open');
+    } else {
+      this._sidebarAnimating = false;
+      this.sidebarOpen = false;
+      const isLandscape = window.innerWidth > window.innerHeight;
+      if (fh && isLandscape) fh.style.display = 'flex';
+      this.render();
     }
-  }, true);
+  }
+
+  initSidebarBehavior() {
+  // Sidebar open/close is handled by the hamburger toggle and an overlay created when open.
+  // This avoids fragile global listeners and makes touch behaviour reliable.
   }
   
   render() {
@@ -49,16 +114,21 @@ class GradingHeatmapApp {
   getHTML() {
     this.heatData = computeHeatmap(this.state.courses);
     const grouped = this.getGroupedCourses();
+    const overlayHtml = this.sidebarOpen ? `<div id="sidebar-overlay" style="position:fixed;inset:0;z-index:998;background:rgba(0,0,0,0.0);"></div>` : "";
 
     return `
       <style>
         * { font-family: "Source Sans 3", "Source Sans Pro", Arial, sans-serif; }
         .header, .header-title, h1, h2, h3 { font-family: "Source Serif 4", "Times New Roman", serif; }
+        /* floating hamburger visible only on small screens */
+        #floating-hamburger { display: none; }
+        @media (max-width: 768px) { #floating-hamburger { display:flex !important; } }
         
       @media (max-width: 768px) {
-        .sidebar { position: fixed; left: -100%; top: 0; width: 250px; height: 100vh; background: #fff; z-index: 999; transition: left 0.3s; overflow-y: auto; box-shadow: 2px 0 8px rgba(0,0,0,0.1); padding-top: 75px; }
-        .sidebar.open { left: 0; }
-        .hamburger { display: flex !important; align-items: center; }
+        /* slide animation with transform for smoother GPU-accelerated animation */
+        .sidebar { position: fixed; transform: translateX(-110%); top: 0; width: 220px; height: 100vh; background: #fff; z-index: 999; transition: transform 0.28s ease; overflow-y: auto; box-shadow: 2px 0 8px rgba(0,0,0,0.1); padding-top: 75px; }
+        .sidebar.open { transform: translateX(0); }
+        .hamburger { display: flex !important; align-items: center; position: fixed; left: 12px; top: 27px; z-index: 10050; }
         main { width: 100%; }
         .calendar-grid { display: flex; flex-direction: column; }
         .month-row { width: 100%; margin-bottom: 20px; }
@@ -70,10 +140,15 @@ class GradingHeatmapApp {
         .header-btn { font-size: 11px; padding: 8px 8px; }
         .header-btn.danger { font-size: 11px; padding: 8px 8px; }
       }
+      /* On desktop, reserve space for the scrollbar so appearing/disappearing
+         doesn't change the sidebar's content width */
+      @media (min-width: 769px) {
+        .sidebar { scrollbar-gutter: stable; }
+      }
       </style>
 
       <header class="header">
-      <button class="hamburger" id="hamburger-btn" style="z-index:1001;background:#bc0031;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:18px;display:none;">☰</button>
+      <button class="hamburger" id="hamburger-btn" style="position:fixed;left:12px;top:27px;z-index:11000;background:#bc0031;border:1px solid rgba(255,255,255,0.4);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:18px;display:none;">☰</button>
         <div class="header-left">
           <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/Amsterdamuniversitylogo.svg" alt="UvA logo" class="uva-logo" />
           <span class="header-title">Grading Heatmap</span>
@@ -86,6 +161,7 @@ class GradingHeatmapApp {
       </header>
 
       <div class="body">
+        ${overlayHtml}
         ${this.getSidebarHTML(grouped)}
         ${this.getCalendarHTML()}
       </div>
@@ -96,7 +172,7 @@ class GradingHeatmapApp {
 
   getSidebarHTML(grouped) {
     return `
-      <aside class="sidebar">
+      <aside class="sidebar ${this.sidebarOpen ? 'open' : ''}">
         <div class="sidebar-label">Courses</div>
         <div style="display:flex;gap:6px;margin-bottom:6px;width:100%;">
           <button id="import-rooster-btn" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;font-weight:600;">
@@ -235,21 +311,21 @@ class GradingHeatmapApp {
           <h3 style="margin-bottom:12px;color:#222;">Edit Assessment</h3>
           <div style="margin-bottom:8px;">
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">Assessment Name</label>
-            <input type="text" id="modal-name" value="${assessment.name}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;box-sizing:border-box;">
+            <input type="text" id="modal-name" value="${assessment.name}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:8px;font-size:12px;box-sizing:border-box;">
           </div>
           <div style="margin-bottom:12px;">
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">Date (DD/MM/YYYY)</label>
             <div style="display:flex;gap:2px;font-size:0;">
-              <input type="text" id="modal-day" inputmode="numeric" placeholder="DD" maxlength="2" value="${day}" style="width:30%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;box-sizing:border-box;">
+              <input type="text" id="modal-day" inputmode="numeric" placeholder="DD" maxlength="2" value="${day}" style="width:30%;padding:6px;border:1px solid #ddd;border-radius:8px;font-size:12px;box-sizing:border-box;">
               <span style="width:8%;text-align:center;color:#999;align-self:center;font-size:12px;">/</span>
-              <input type="text" id="modal-month" inputmode="numeric" placeholder="MM" maxlength="2" value="${month}" style="width:30%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;box-sizing:border-box;">
+              <input type="text" id="modal-month" inputmode="numeric" placeholder="MM" maxlength="2" value="${month}" style="width:30%;padding:6px;border:1px solid #ddd;border-radius:8px;font-size:12px;box-sizing:border-box;">
               <span style="width:8%;text-align:center;color:#999;align-self:center;font-size:12px;">/</span>
-              <input type="text" id="modal-year" inputmode="numeric" placeholder="YYYY" maxlength="4" value="${year}" style="width:24%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;box-sizing:border-box;">
+              <input type="text" id="modal-year" inputmode="numeric" placeholder="YYYY" maxlength="4" value="${year}" style="width:24%;padding:6px;border:1px solid #ddd;border-radius:8px;font-size:12px;box-sizing:border-box;">
             </div>
           </div>
           <div style="display:flex;gap:8px;">
-            <button id="modal-save" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Save</button>
-            <button id="modal-cancel" style="flex:1;background:#ddd;color:#333;border:none;border-radius:4px;padding:8px;cursor:pointer;">Cancel</button>
+            <button id="modal-save" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:8px;padding:8px;cursor:pointer;font-weight:600;">Save</button>
+            <button id="modal-cancel" style="flex:1;background:#ddd;color:#333;border:none;border-radius:8px;padding:8px;cursor:pointer;">Cancel</button>
           </div>
         </div>
       </div>
@@ -353,7 +429,7 @@ class GradingHeatmapApp {
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
             <span style="font-weight:600;font-size:12px;color:#bc0031;flex:1;">${courseName}</span>
             <select class="import-year-select" data-course="${encodeURIComponent(courseName)}"
-              style="font-size:11px;border:1px solid #ddd;border-radius:4px;padding:2px 4px;">
+              style="font-size:11px;border:1px solid #ddd;border-radius:8px;padding:2px 4px;">
               ${yearOptions}
             </select>
           </div>
@@ -463,7 +539,7 @@ class GradingHeatmapApp {
             const course = this.state.courses.find(c => c.name === a.course);
             const assessment = course?.assessments.find(x => x.name === a.name);
             return `
-              <button id="edit-${assessment.id}" style="width:100%;text-align:left;padding:6px;margin-bottom:4px;background:#f5f5f5;border:1px solid #ddd;border-radius:4px;cursor:pointer;font-size:12px;">
+              <button id="edit-${assessment.id}" style="width:100%;text-align:left;padding:6px;margin-bottom:4px;background:#f5f5f5;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:12px;">
                 ${a.course}: ${a.name}
               </button>
             `;
@@ -479,18 +555,18 @@ class GradingHeatmapApp {
           ${editOptions}
           <div style="margin-bottom:8px;">
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">Course</label>
-            <select id="modal-course" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+            <select id="modal-course" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:8px;font-size:12px;">
               <option value="">-- Select course --</option>
               ${this.state.courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
             </select>
           </div>
           <div style="margin-bottom:12px;">
             <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">Assessment Name</label>
-            <input type="text" id="modal-name" placeholder="e.g. Exam, Essay" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px;box-sizing:border-box;">
+            <input type="text" id="modal-name" placeholder="e.g. Exam, Essay" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:8px;font-size:12px;box-sizing:border-box;">
           </div>
           <div style="display:flex;gap:8px;">
-            <button id="modal-add" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;">Add</button>
-            <button id="modal-cancel" style="flex:1;background:#ddd;color:#333;border:none;border-radius:4px;padding:8px;cursor:pointer;">Cancel</button>
+            <button id="modal-add" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:8px;padding:8px;cursor:pointer;font-weight:600;">Add</button>
+            <button id="modal-cancel" style="flex:1;background:#ddd;color:#333;border:none;border-radius:8px;padding:8px;cursor:pointer;">Cancel</button>
           </div>
         </div>
       </div>
@@ -543,7 +619,9 @@ class GradingHeatmapApp {
     return `
       <div class="course-card" id="course-${course.id}" data-course-id="${course.id}" style="border-left-color:${color};" draggable="true">
         <div class="course-header">
-        <span style="font-size:10px;color:#ccc;user-select:none;cursor:grab;"><i class="fa-solid fa-grip-vertical"></i></span>
+        <span class="course-grab" data-course-id="${course.id}" style="font-size:10px;color:#ccc;user-select:none;cursor:grab;touch-action:none;">
+          <i class="fa-solid fa-grip-vertical"></i>
+        </span>
           <input type="color" id="color-${course.id}" value="${color}" class="color-picker" data-id="${course.id}" style="width:14px;height:14px;border:none;border-radius:50%;cursor:pointer;padding:0;flex-shrink:0;">
           <span class="course-name ${!course.on ? "off" : ""}">${course.name}</span>
           <button class="multiplier-btn ${course.loadMultiplier === 2 ? 'active' : ''}" data-id="${course.id}" title="Parallel groups">2×</button>
@@ -728,14 +806,28 @@ attachEventListeners() {
     }
   });
 
-  // Hamburger
-  const oldHamburger = document.getElementById('hamburger-btn');
-  if (oldHamburger) {
-    const hamburger = oldHamburger.cloneNode(true);
-    oldHamburger.replaceWith(hamburger);
-    hamburger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.querySelector('.sidebar')?.classList.toggle('open');
+  // Ensure clicks inside the sidebar don't bubble to the document (prevents accidental close on mobile)
+  const sidebarEl = document.querySelector('.sidebar');
+  if (sidebarEl) {
+    sidebarEl.addEventListener('click', (e) => { e.stopPropagation(); });
+    sidebarEl.addEventListener('touchstart', (e) => { e.stopPropagation(); });
+    sidebarEl.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+  }
+
+  // If an overlay is present, clicking it should close the sidebar
+  const overlay = document.getElementById('sidebar-overlay');
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        this.sidebarOpen = false;
+        this.render();
+      }
+    });
+    overlay.addEventListener('touchstart', (e) => {
+      if (e.target === overlay) {
+        this.sidebarOpen = false;
+        this.render();
+      }
     });
   }
 
@@ -783,14 +875,29 @@ attachEventListeners() {
       });
     });
 
-    const oldBtn = document.getElementById('hamburger-btn');
-    const hamburger = oldBtn.cloneNode(true);
-    oldBtn.replaceWith(hamburger);
+    // Hamburger toggle: don't clone the element (render() replaces DOM so listeners won't duplicate)
+    const hamburger = document.getElementById('hamburger-btn');
+    if (hamburger) {
+      // Toggle sidebar using animated open/close helpers
+      const toggleSidebar = (e) => {
+        e && e.stopPropagation();
+        if (!this.sidebarOpen) this.openSidebarAnimated(); else this.closeSidebarAnimated();
+        // keep floating hamburger visible above overlay
+        const fh = document.getElementById('floating-hamburger');
+        if (fh) fh.style.display = 'flex';
+      };
 
-    hamburger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.querySelector('.sidebar')?.classList.toggle('open');
-    });
+      // Use pointer events to avoid duplicate events on touch devices
+      hamburger.addEventListener('pointerup', (e) => { e.stopPropagation(); toggleSidebar(e); });
+      hamburger.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+    }
+
+    // Wire the persistent floating hamburger to the same toggle
+    const fh = document.getElementById('floating-hamburger');
+    if (fh) {
+      fh.addEventListener('pointerup', (e) => { e.stopPropagation(); if (!this.sidebarOpen) this.openSidebarAnimated(); else this.closeSidebarAnimated(); });
+      fh.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+    }
 
     // Assessment actions
     document.querySelectorAll(".add-assessment-btn").forEach(btn => {
@@ -839,6 +946,47 @@ attachEventListeners() {
         this.dragId = null;
         this.dragOver = null;
         this.render();
+      });
+    });
+
+    // Make the grab handle start drag on touch/pointer for mobile
+    document.querySelectorAll('.course-grab').forEach(handle => {
+      handle.addEventListener('pointerdown', (e) => {
+        const id = handle.dataset.courseId;
+        const card = document.getElementById(`course-${id}`);
+        if (!card) return;
+        // emulate drag by setting data and adding a dragging class
+        this.dragId = id;
+        card.classList.add('dragging');
+
+        // attempt to capture pointer to keep receiving events
+        try { handle.setPointerCapture && handle.setPointerCapture(e.pointerId); } catch (err) {}
+
+        const onMove = (ev) => {
+          const el = document.elementFromPoint(ev.clientX, ev.clientY);
+          const section = el && el.closest && el.closest('.year-section');
+          document.querySelectorAll('.year-section').forEach(s => s.classList.toggle('drag-over', s === section));
+          this.dragOver = section ? parseInt(section.dataset.year) : null;
+        };
+
+        const onUp = (ev) => {
+          try { handle.releasePointerCapture && handle.releasePointerCapture(e.pointerId); } catch (err) {}
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          const card2 = document.getElementById(`course-${id}`);
+          if (card2) card2.classList.remove('dragging');
+          if (this.dragId && this.dragOver != null) {
+            this.state.yearMap[this.dragId] = this.dragOver;
+            saveState(this.state);
+          }
+          this.dragId = null;
+          this.dragOver = null;
+          document.querySelectorAll('.year-section').forEach(s => s.classList.remove('drag-over'));
+          this.render();
+        };
+
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
       });
     });
 
@@ -1167,7 +1315,7 @@ attachEventListeners() {
 
         if (course.loadMultiplier === 2) {
           const badge = document.createElement('div');
-          badge.style.cssText = 'font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;background:#bc0031;color:#fff;flex-shrink:0;';
+          badge.style.cssText = 'font-size:10px;font-weight:700;padding:2px 5px;border-radius:8px;background:#bc0031;color:#fff;flex-shrink:0;';
           badge.textContent = '2×';
           header.appendChild(badge);
         }
