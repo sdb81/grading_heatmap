@@ -179,7 +179,7 @@ class GradingHeatmapApp {
           <button id="import-rooster-btn" style="flex:1;background:#bc0031;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;font-weight:600;">
             <i class="fa-solid fa-file-import"></i>  Import from Rooster
           </button>
-          <button id="import-help-btn" style="background:#e2ded8;color:#555;border:none;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:700;transition:background 0.2s;hover: { background: #bbb2ad; };"><i class="fa-solid fa-question"></i></button>
+          <button id="import-help-btn" style="background:#e2ded8;color:#555;border:none;border-radius:8px;padding:4px 13px;font-size:12px;cursor:pointer;font-weight:700;transition:background 0.2s;hover: { background: #bbb2ad; };"><i class="fa-solid fa-question"></i></button>
         </div>
         <div class="add-row">
           <input class="input" id="course-input" placeholder="Course name…" value="${this.newCourseName}">
