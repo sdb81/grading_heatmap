@@ -269,12 +269,11 @@ class GradingHeatmapApp {
   showIntroOnFirstLaunch() {
     if (!localStorage.getItem('hasVisited')) {
       const content = `
-        <p>This tool is aimed to help coordinators better understand and plan the grading workload of Junior Lecturers, and help teachers become aware of upcoming grading peaks.
-        It can also help other staff gain insight into the impact of their grading workload on other responsibilities.</p>
-        <p>With this tool, you can import courses from your UvA Rooster or add deadlines manually.
+        <p>This tool is aimed to help teaching staff better understand and plan grading workload across courses, helping teachers become aware of upcoming grading peaks.</p>
+        <p>With this tool, you can import course exams from your UvA Rooster or add deadlines manually.
         For each deadline, the tool provides a visual representation of the 15 working day grading period.</p>
       `;
-      this.showModal('Welcome to the Grading Heatmap!', content, { closeButtonText: 'Get Started' });
+      this.showModal('Welcome to the Grading Heatmap!', content, { closeButtonText: 'Get started' });
       localStorage.setItem('hasVisited', 'true');
     }
   }
