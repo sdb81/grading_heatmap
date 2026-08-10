@@ -12,6 +12,7 @@ class GradingHeatmapApp {
     this.shareMsg = "";
     this.sidebarOpen = false;
     this._sidebarAnimating = false;
+    this._tooltipOnMove = null;
     
     this.init();
   }
@@ -577,23 +578,36 @@ class GradingHeatmapApp {
     const addBtn  = document.getElementById('modal-add');
     const cancelBtn = document.getElementById('modal-cancel');
 
-    const close = () => overlay.remove();
+    const keydownHandler = (e) => {
+      if (e.key === 'Escape') { close(); }
+      if (e.key === 'Enter')  { addBtn?.click(); }
+    };
+
+    const close = () => {
+      document.removeEventListener('keydown', keydownHandler);
+      overlay.remove();
+    };
 
     cancelBtn.addEventListener('click', close);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
 
-    document.addEventListener('keydown', function handler(e) {
-      if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
-      if (e.key === 'Enter')  { addBtn?.click(); }
-    });
+    document.addEventListener('keydown', keydownHandler);
 
     addBtn.addEventListener('click', () => {
+      // remove key handler first to avoid duplicate add when handlers accumulated
+      document.removeEventListener('keydown', keydownHandler);
       const courseId = document.getElementById('modal-course').value;
       const name = document.getElementById('modal-name').value.trim();
       if (!courseId || !name) { alert('Please select a course and enter a name'); return; }
       const course = this.state.courses.find(c => c.id === courseId);
       if (course) {
-        course.assessments.push({ id: uid(), name, date: iso });
+        // avoid accidental duplicates
+        const exists = course.assessments.some(a => a.name === name && a.date === iso);
+        if (!exists) {
+          course.assessments.push({ id: uid(), name, date: iso });
+        } else {
+          alert('This assessment already exists for that course and date');
+        }
         saveState(this.state);
       }
       close();
@@ -1209,13 +1223,23 @@ attachEventListeners() {
   }
 
   hideTooltip() {
+    // Remove tooltip element and its move handler without re-rendering to avoid
+    // replacing DOM nodes under the cursor (which can swallow clicks on mac trackpads).
+    const tipEl = document.getElementById('tooltip');
+    if (tipEl) tipEl.remove();
+    if (this._tooltipOnMove) {
+      document.removeEventListener('mousemove', this._tooltipOnMove);
+      this._tooltipOnMove = null;
+    }
     this.tooltip = null;
-    this.render();
   }
 
   showTooltip(e, iso) {
+    // Render tooltip into the DOM directly (avoid full app render) so the
+    // target day-cell isn't replaced under the cursor — this helps mac trackpad
+    // users who click immediately after hover.
     document.getElementById("tooltip")?.remove(); // Clear old tooltip
-    
+
     const h = this.heatData[iso];
     if (!h) return;
     const lines = [];
@@ -1224,29 +1248,29 @@ attachEventListeners() {
     if (!lines.length) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    this.tooltip = { x: rect.left + rect.width / 2, y: rect.top, lines };
-    this.render();
-    // Remove any deliberate delay flag to minimize perceived latency
-      // Robust auto-hide: coordinate-based, no artificial delay
-    const tipEl = document.getElementById('tooltip');
-    if (tipEl) {
-      const onMove = (ev) => {
-        const el = document.elementFromPoint(ev.clientX, ev.clientY);
-        const inDay = !!(el && el.closest && el.closest('.day-cell.has-data'));
-        const inTip = !!(el && el.closest && el.closest('#tooltip'));
-        if (!inDay && !inTip) {
-          this.tooltip = null;
-          this.render();
-          document.removeEventListener('mousemove', onMove);
-        }
-      };
-      document.addEventListener('mousemove', onMove);
-      // Also hide when leaving the tooltip itself
-      tipEl.addEventListener('mouseleave', () => {
-        this.tooltip = null;
-        this.render();
-      }, { once: true });
-    }
+    const tipEl = document.createElement('div');
+    tipEl.id = 'tooltip';
+    tipEl.className = 'tooltip';
+    tipEl.style.left = (rect.left + rect.width / 2) + 'px';
+    tipEl.style.top = rect.top + 'px';
+    tipEl.innerHTML = lines.map(l => `<div class="tooltip-line">${l}</div>`).join('');
+    document.body.appendChild(tipEl);
+
+    // Auto-hide when moving away from day or tooltip
+    const onMove = (ev) => {
+      const el = document.elementFromPoint(ev.clientX, ev.clientY);
+      const inDay = !!(el && el.closest && el.closest('.day-cell.has-data'));
+      const inTip = !!(el && el.closest && el.closest('#tooltip'));
+      if (!inDay && !inTip) {
+        this.hideTooltip();
+      }
+    };
+    this._tooltipOnMove = onMove;
+    document.addEventListener('mousemove', onMove);
+
+    tipEl.addEventListener('mouseleave', () => {
+      this.hideTooltip();
+    }, { once: true });
   }
 
   
