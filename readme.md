@@ -1,4 +1,4 @@
-# Welcome!
+## Welcome!
 This is the Github page for Sebastiaan den Broeder's Grading Heatmap tool for the University of Amsterdam.
 ## URL
 Current URL: [rss.denbroeder.eu/host/heatmap](https://rss.denbroeder.eu/host/heatmap/)
@@ -21,6 +21,6 @@ This site uses a self-hosted instance of [Umami](https://umami.is), a privacy-fo
 - No cross-site tracking
 - No fingerprinting
 
-# Acknowledgements
+## Acknowledgements
 Thanks to Koen Wijnen for the initial idea!
 Made with [UvA AI Chat](https://aichat.uva.nl/chat).
