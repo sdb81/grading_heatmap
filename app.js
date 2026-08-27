@@ -140,6 +140,7 @@ class GradingHeatmapApp {
         .header-right { display: flex; flex-wrap: wrap; gap: 4px; }
         .header-btn { font-size: 11px; padding: 8px 8px; }
         .header-btn.danger { font-size: 11px; padding: 8px 8px; }
+        .github-link { min-height: 36px; padding: 8px; font-size: 11px; }
       }
       /* On desktop, reserve space for the scrollbar so appearing/disappearing
          doesn't change the sidebar's content width */
@@ -158,6 +159,14 @@ class GradingHeatmapApp {
           <button class="header-btn" id="share-btn"><i class="fa-solid fa-link"></i>${this.shareMsg ? ` — ${this.shareMsg}` : " Share"}</button>
           <button class="header-btn" id="png-btn"><i class="fa-solid fa-circle-down"></i> Save</button>
           <button class="header-btn danger" id="reset-btn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          <a
+            class="github-link"
+            href="https://github.com/sdb81/grading_heatmap"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View this project on GitHub"
+            title="View on GitHub"
+          ><i class="fa-brands fa-github"></i></a>
         </div>
       </header>
 
@@ -182,7 +191,7 @@ class GradingHeatmapApp {
           <button id="import-help-btn" style="background:#e2ded8;color:#555;border:none;border-radius:8px;padding:4px 13px;font-size:12px;cursor:pointer;font-weight:700;transition:background 0.2s;hover: { background: #bbb2ad; };"><i class="fa-solid fa-question"></i></button>
         </div>
         <div class="add-row">
-          <input class="input" id="course-input" placeholder="Course name…" value="${this.newCourseName}">
+          <input class="input" id="course-input" placeholder="Add manually…" value="${this.newCourseName}">
           <button class="add-btn" id="add-course-btn"><i class="fa-solid fa-plus"></i></button>
         </div>
 
@@ -285,7 +294,7 @@ class GradingHeatmapApp {
         <li>Press <strong>Add Timetable</strong> and add the preferred course or programme.</li>
         <li>Once added, select courses/programmes and press <strong>Download</strong> &rsaquo; <strong>iCalendar</strong> &rsaquo; <strong>All year</strong>.</li>
         <li>On this page, press the <strong>Import from Rooster</strong> button and select the downloaded file, usually called <em>'timetable_[today's date].ics'</em>.</li>
-        <li>Select exams, resits and activities to include/exclude. Note that courses whose deadlines are not listed on Rooster should be added manually.</li>
+        <li>Select the exams, resits and activities to include/exclude. Note that courses whose deadlines are not listed on Rooster should be added manually.</li>
         <li>Press <strong>Import</strong>.</li>
       </ol>
     `;
@@ -1383,7 +1392,7 @@ attachEventListeners() {
 
     // Legend at the bottom
     const legend = document.createElement('div');
-    legend.style.cssText = 'margin-top:8px;';
+    legend.style.cssText = 'margin-top:8px;padding-top:12px;border-top:1px solid #ddd;';
 
     const legendTitle = document.createElement('div');
     legendTitle.style.cssText = 'font-family: "Source Serif 4", "Times New Roman", serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#353535;margin-bottom:6px;';

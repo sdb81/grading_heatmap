@@ -1,6 +1,24 @@
-Shoutout to Koen Wijnen for the initial execution!
+# Welcome!
+## URL
+Current url: [rss.denbroeder.eu/host/heatmap](https://rss.denbroeder.eu/host/heatmap/)
 
-to do:
-- think through how to share versions, so people can collaborate easier
-- think through how to save/log specific courses + dates to remove unnecessary double work
-- think through how to easily adapt to 27-28, 28-29, etc.
+## Work in Progress
+Please see Issues > Feedback for what we're working on!
+
+## Analytics
+This site uses a self-hosted instance of [Umami](https://umami.is), a privacy-focused analytics tool. This is only used for understanding the general popularity of the page, and not for individualised tracking.
+
+### What Umami tracks
+- Page views
+- Referrer (where the visitor came from)
+- Browser, operating system, and device type
+- Country of origin
+
+### What Umami does not track
+- No personal data or identifiable information
+- No cookies
+- No cross-site tracking
+- No fingerprinting
+
+# Acknowledgements
+Thanks to Koen Wijnen for the initial idea!
