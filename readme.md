@@ -1,6 +1,7 @@
 # Welcome!
+This is the Github page for Sebastiaan den Broeder's Grading Heatmap tool for the University of Amsterdam.
 ## URL
-Current url: [rss.denbroeder.eu/host/heatmap](https://rss.denbroeder.eu/host/heatmap/)
+Current URL: [rss.denbroeder.eu/host/heatmap](https://rss.denbroeder.eu/host/heatmap/)
 
 ## Work in Progress
 Please see Issues > Feedback for what we're working on!
