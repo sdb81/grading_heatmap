@@ -22,3 +22,4 @@ This site uses a self-hosted instance of [Umami](https://umami.is), a privacy-fo
 
 # Acknowledgements
 Thanks to Koen Wijnen for the initial idea!
+Made with [UvA AI Chat](https://aichat.uva.nl/chat).
